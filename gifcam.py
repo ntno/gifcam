@@ -44,10 +44,10 @@ GPIO.setwarnings(False)
 
 button = 19 #Button GPIO Pin
 GPIO.setup(button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-led_1 = 12 #Status LED GPIO Pin
+led_1 = 10 #Status LED GPIO Pin
 GPIO.setup(led_1, GPIO.OUT)
 buttonLed = GPIO.PWM(led_1, 10)
-led_2 = 21 #ON/OFF LED Pin
+led_2 = 12 #ON/OFF LED Pin
 GPIO.setup(led_2, GPIO.OUT)
 statusLed = GPIO.PWM(led_2, 2)
 
@@ -84,12 +84,12 @@ def tweet_pics():
         statusLed.ChangeDutyCycle(100)
         buttonLed.ChangeDutyCycle(0)
         sleep(2)
-        
+
 
 try:
     while True:
         if GPIO.input(button) == False: # Button Pressed
-        
+
             ### TAKING PICTURES ###
             print('Gif Started')
             statusLed.ChangeDutyCycle(0)
@@ -110,10 +110,10 @@ try:
                     dest = dest.zfill(8) # pad with zeros
                     copyCommand = "cp " + source + " " + dest
                     os.system(copyCommand)
-                    
+
             filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
             print('Processing')
-            graphicsmagick = "gm convert -delay " + str(gif_delay) + " " + "*.jpg " + filename + ".gif" 
+            graphicsmagick = "gm convert -delay " + str(gif_delay) + " " + "*.jpg " + filename + ".gif"
             os.system(graphicsmagick)
             os.system("rm ./*.jpg") # cleanup source images
 
@@ -122,7 +122,7 @@ try:
                 statusLed.ChangeDutyCycle(25)
                 buttonLed.ChangeDutyCycle(0)
                 tweet_pics()
-            
+
             print('Done')
             print('System Ready')
 
@@ -131,6 +131,6 @@ try:
             statusLed.ChangeDutyCycle(0)
             buttonLed.ChangeDutyCycle(100)
             sleep(0.05)
-           
+
 except:
     GPIO.cleanup()
