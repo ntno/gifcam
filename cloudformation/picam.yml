@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: creates bucket for gifs, IAM roles for Lambda and pi, and Lambda function
+Parameters:
+  PicamBucketName:
+    Type: String
+    Description: name for the bucket
+    Default: ntno-test
+Outputs:
+  PicamBucketARN:
+    Description: location of bucket for storing picam gifs
+    Value: !GetAtt 
+      - PicamBucket
+      - Arn
+Resources:
+  PicamBucket: 
+    Type: AWS::S3::Bucket
+    Properties: 
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        IgnorePublicAcls: True
+        BlockPublicPolicy: True
+        RestrictPublicBuckets: True
+      BucketEncryption: 
+          ServerSideEncryptionConfiguration: 
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+      BucketName: !Ref PicamBucketName
+      Tags:
+        - 
+          Key: domain
+          Value: personal
+        - 
+          Key: project
+          Value: picam
+  PicamBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PicamBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DenyIncorrectEncryptionHeader
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: 
+              - !Join
+                  - ''
+                  - - !GetAtt 
+                      - PicamBucket
+                      - Arn
+                    - '/*'
+            Condition:
+              StringNotEquals:
+                's3:x-amz-server-side-encryption': AES256
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: 
+              - !Join
+                  - ''
+                  - - !GetAtt 
+                      - PicamBucket
+                      - Arn
+                    - '/*'
+            Condition:
+              'Null':
+                's3:x-amz-server-side-encryption': True
