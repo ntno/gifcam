@@ -1,2 +1,4 @@
 *.gif
 *.jpg
+cloudformation/update-stack.sh
+cloudformation/create-stack.sh
