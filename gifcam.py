@@ -24,10 +24,10 @@ tweet = False       # Tweets the GIF after capturing
 # Ensure 'tweet' behaviour-variable is True if you want to tweet pictures.
 #
 ########################
-APP_KEY = 'YOUR API KEY'
-APP_SECRET = 'YOUR API SECRET'
-OAUTH_TOKEN = 'YOUR ACCESS TOKEN'
-OAUTH_TOKEN_SECRET = 'YOUR ACCESS TOKEN SECRET'
+APP_KEY = os.getenv('TWITTER_APP_KEY')
+APP_SECRET = os.getenv('TWITTER_APP_SECRET')
+OAUTH_TOKEN = os.getenv('TWITTER_OAUTH_TOKEN')
+OAUTH_TOKEN_SECRET = os.getenv('TWITTER_OAUTH_TOKEN_SECRET')
 
 #setup the twitter api client
 twitter = Twython(APP_KEY, APP_SECRET,
