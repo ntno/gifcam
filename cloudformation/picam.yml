@@ -11,8 +11,12 @@ Parameters:
     Default: picam-pi-ex
   PicamLambdaRoleName:
     Type: String
-    Description: prefix for the IAM role lambda will use to read gifs and post to social media
+    Description: prefix for the IAM role Lambda will process gifs
     Default: picam-lambda-ex
+  PicamLambdaName:
+    Type: String
+    Description: prefix for the Lambda function which will process gifs
+    Default: picam-process-gifs
 Resources:
   PicamBucket: 
     Type: AWS::S3::Bucket
@@ -116,3 +120,22 @@ Resources:
                           - Arn
                         - '/gifs/*'
       RoleName: !Sub '${PicamLambdaRoleName}-${AWS::Region}'
+  PicamLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        S3Bucket: !Ref PicamBucketName
+        S3Key: lambda/function.zip
+      Description: publishes gifs to social media
+      Environment: 
+        Variables:
+          KEY: test-123
+          TZ: ET
+          what_to_print: 'hello world'
+          how_many_times: 1
+      FunctionName: !Sub '${PicamLambdaName}-${AWS::Region}'
+      Handler: function.lambda_handler
+      Role: !GetAtt 
+        - PicamLambdaExecutionRole
+        - Arn
+      Runtime: python3.6
