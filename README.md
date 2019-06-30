@@ -17,8 +17,17 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 
 ## TODOs
 * add logging permission to lambda function
-* figure out how to include pip dependency (twython)
 * set up authentication with AWS IoT
 * refactor scripts so i can take out default params
 * add resource tags 
 * investigate whether i need kms on the environment variables
+  * can encrypt in transit using CMK but that is $1 per month which seems like it might be overkill
+  * environment variables are encrypted at rest by default
+  * ssm-secure looks interesting but isn't available for all resource types
+    * ssm + default at rest encryption ?
+    * then the tokens are only inside AWS after initial set?
+
+## Resources
+* [how to create a python lambda deployment package](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html)
+* [ssm-secure](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html) looks useful but is only supported on certain resource types
+
