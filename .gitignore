@@ -2,3 +2,4 @@
 *.jpg
 cloudformation/update-stack.sh
 cloudformation/create-stack.sh
+cloudformation/update-code.sh
