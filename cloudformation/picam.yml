@@ -4,7 +4,6 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
-    Default: picam
   PicamRoleName:
     Type: String
     Description: prefix for the IAM role pi will use to upload files
@@ -17,6 +16,10 @@ Parameters:
     Type: String
     Description: prefix for the Lambda function which will process gifs
     Default: picam-process-gifs
+  #NOTE - this bucket is not created via the picam.yml template, you must create it beforehand and upload the code
+  CodeBucketName:
+    Type: String
+    Description: name of bucket containing lambda code 
 Resources:
   PicamBucket: 
     Type: AWS::S3::Bucket
@@ -124,7 +127,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties: 
       Code: 
-        S3Bucket: !Ref PicamBucketName
+        S3Bucket: !Ref CodeBucketName
         S3Key: lambda/function.zip
       Description: publishes gifs to social media
       Environment: 
