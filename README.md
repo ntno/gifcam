@@ -13,3 +13,12 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 - When recording finishes, the status LED will switch off.
 - The button LED will blink while the GIF is being processed
 - When processing is finished, the camera will return to the READY state, and the status LED will illuminate.
+
+
+## TODOs
+* add logging permission to lambda function
+* figure out how to include pip dependency (twython)
+* set up authentication with AWS IoT
+* refactor scripts so i can take out default params
+* add resource tags 
+* investigate whether i need kms on the environment variables
