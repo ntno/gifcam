@@ -4,7 +4,15 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
-    Default: ntno-test
+    Default: ntno-test-bucket
+  PicamRoleName:
+    Type: String
+    Description: prefix for the IAM role pi will use to upload files
+    Default: picam-pi-ex
+  # PicamLambdaRoleName:
+  #   Type: String
+  #   Description: prefix for the IAM role pi will use to upload files
+  #   Default: picam-lambda-ex
 Outputs:
   PicamBucketARN:
     Description: location of bucket for storing picam gifs
@@ -26,13 +34,6 @@ Resources:
             - ServerSideEncryptionByDefault:
                 SSEAlgorithm: AES256
       BucketName: !Ref PicamBucketName
-      Tags:
-        - 
-          Key: domain
-          Value: personal
-        - 
-          Key: project
-          Value: picam
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -68,3 +69,32 @@ Resources:
             Condition:
               'Null':
                 's3:x-amz-server-side-encryption': True
+  PicamExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS : !Ref AWS::AccountId
+            Action:
+              - sts:AssumeRole
+      Policies: 
+        - PolicyName: !Sub '${PicamRoleName}-${AWS::Region}-permissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: WriteToGifsFolder
+                Action: 's3:PutObject'
+                Effect: Allow
+                Resource: 
+                  - !Join
+                      - ''
+                      - - !GetAtt 
+                          - PicamBucket
+                          - Arn
+                        - '/gifs/*'
+      RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
+  # PicamLambdaExecutionRole:
+  #   Type: AWS::IAM::Role
