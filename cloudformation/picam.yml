@@ -139,7 +139,7 @@ Resources:
           TWITTER_APP_SECRET: '{{resolve:ssm:TWITTER_PICAM_APP_SECRET:1}}'
           TWITTER_OAUTH_TOKEN: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN:1}}'
           TWITTER_OAUTH_TOKEN_SECRET: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN_SECRET:1}}'
-          TWITTER_MESSAGE: '{{resolve:ssm:TWITTER_PICAM_STATUS_MESSAGE:1}}'
+          TWITTER_MESSAGE: '{{resolve:ssm:TWITTER_PICAM_STATUS_MESSAGE:2}}'
       FunctionName: !Sub '${PicamLambdaName}-${AWS::Region}'
       Handler: function.lambda_handler
       Role: !GetAtt 
