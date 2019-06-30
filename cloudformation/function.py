@@ -1,24 +1,36 @@
-import os
+import os, boto3, json, uuid
 from twython import Twython
+import boto3
 
 TWITTER_APP_KEY='TWITTER_APP_KEY'
 TWITTER_APP_SECRET='TWITTER_APP_SECRET'
 TWITTER_OAUTH_TOKEN='TWITTER_OAUTH_TOKEN'
 TWITTER_OAUTH_TOKEN_SECRET='TWITTER_OAUTH_TOKEN_SECRET'
+TWITTER_MESSAGE='TWITTER_MESSAGE'
 
-def getGif(event):
-    record = event['Records'][0]
-    bucket = record['s3']['bucket']['name']
-    key = record['s3']['object']['key']
-    
-    fileInfo = {}
-    fileInfo['bucket'] = bucket
-    fileInfo['key'] = key
+DEBUG=False
 
-    return fileInfo
+def getFileInfo(event):
+  record = event['Records'][0]
+  bucket = record['s3']['bucket']['name']
+  key = record['s3']['object']['key']
+  
+  fileInfo = {}
+  fileInfo['bucket'] = bucket
+  fileInfo['key'] = key
+  return fileInfo
 
-def stripLocationData():
-    pass
+def downloadFile(fileInfo):
+  BUCKET_NAME = fileInfo['bucket']
+  KEY = fileInfo['key']
+  DOWNLOAD_PATH = '/tmp/{}'.format(str(uuid.uuid1()))
+
+  s3Resource = boto3.resource('s3')
+  gifBucket = s3Resource.Bucket(name=BUCKET_NAME)
+  gifBucket.download_file(KEY, DOWNLOAD_PATH)
+
+  fileInfo['local'] = DOWNLOAD_PATH
+  return fileInfo
 
 def getTwitterClient():
     APP_KEY = os.getenv(TWITTER_APP_KEY)
@@ -30,13 +42,27 @@ def getTwitterClient():
     twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
     return twitter
 
-def lambda_handler(event, context):
+def postToTwitter(filePath, statusMessage=os.getenv('TWITTER_MESSAGE', default="")):
+  twitter = getTwitterClient()
+  resp = None
+  with open(filePath, 'rb') as img:
+      if(DEBUG):
+        return "tweet skipped due to DEBUG==True"
+      else:
+        twit_resp = twitter.upload_media(media=img)
+        resp = twitter.update_status(status=statusMessage, media_ids=twit_resp['media_id'])
+  return resp
+
+
+def lambda_handler(event, context):    
+    fileInfo = getFileInfo(event)
+    fileInfo = downloadFile(fileInfo)
+    fileInfo['twitter-response'] = postToTwitter(fileInfo['local'])
+
     response = {}
     response['statusCode'] = 200
-    response['body'] = getGif(event)
-    
-    print (response)
-    return response
+    response['body'] = fileInfo
+    return json.dumps(response)
 
 
 TEST_EVENT = {
@@ -80,4 +106,5 @@ TEST_EVENT = {
 }
 
 if __name__ == "__main__":
-    lambda_handler(TEST_EVENT, None)
+    DEBUG=True
+    print(lambda_handler(TEST_EVENT, None))
