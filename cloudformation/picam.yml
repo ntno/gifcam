@@ -128,14 +128,11 @@ Resources:
     Properties: 
       Code: 
         S3Bucket: !Ref CodeBucketName
-        S3Key: lambda/function.zip
+        S3Key: lambda/picam.zip
       Description: publishes gifs to social media
       Environment: 
         Variables:
-          KEY: test-123
           TZ: ET
-          what_to_print: 'hello world'
-          how_many_times: 1
       FunctionName: !Sub '${PicamLambdaName}-${AWS::Region}'
       Handler: function.lambda_handler
       Role: !GetAtt 
