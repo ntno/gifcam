@@ -133,6 +133,13 @@ Resources:
       Environment: 
         Variables:
           TZ: ET
+          #NOTE - you must store the tokens in a systems manager parameter store beforehand
+          #store must be in the same region as the cloud formation stack
+          TWITTER_APP_KEY: '{{resolve:ssm:TWITTER_PICAM_APP_KEY:1}}'
+          TWITTER_APP_SECRET: '{{resolve:ssm:TWITTER_PICAM_APP_SECRET:1}}'
+          TWITTER_OAUTH_TOKEN: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN:1}}'
+          TWITTER_OAUTH_TOKEN_SECRET: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN_SECRET:1}}'
+          TWITTER_MESSAGE: '{{resolve:ssm:TWITTER_PICAM_STATUS_MESSAGE:1}}'
       FunctionName: !Sub '${PicamLambdaName}-${AWS::Region}'
       Handler: function.lambda_handler
       Role: !GetAtt 
