@@ -4,21 +4,15 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
-    Default: ntno-test-bucket
+    Default: picam
   PicamRoleName:
     Type: String
     Description: prefix for the IAM role pi will use to upload files
     Default: picam-pi-ex
-  # PicamLambdaRoleName:
-  #   Type: String
-  #   Description: prefix for the IAM role pi will use to upload files
-  #   Default: picam-lambda-ex
-Outputs:
-  PicamBucketARN:
-    Description: location of bucket for storing picam gifs
-    Value: !GetAtt 
-      - PicamBucket
-      - Arn
+  PicamLambdaRoleName:
+    Type: String
+    Description: prefix for the IAM role lambda will use to read gifs and post to social media
+    Default: picam-lambda-ex
 Resources:
   PicamBucket: 
     Type: AWS::S3::Bucket
@@ -96,5 +90,29 @@ Resources:
                           - Arn
                         - '/gifs/*'
       RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
-  # PicamLambdaExecutionRole:
-  #   Type: AWS::IAM::Role
+  PicamLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies: 
+        - PolicyName: !Sub '${PicamLambdaRoleName}-${AWS::Region}-permissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: ReadFromGifsFolder
+                Action: 's3:GetObject'
+                Effect: Allow
+                Resource: 
+                  - !Join
+                      - ''
+                      - - !GetAtt 
+                          - PicamBucket
+                          - Arn
+                        - '/gifs/*'
+      RoleName: !Sub '${PicamLambdaRoleName}-${AWS::Region}'
