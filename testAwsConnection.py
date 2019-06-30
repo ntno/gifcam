@@ -19,7 +19,7 @@ def upload_file(file_name, bucket, object_name=None):
 
     # Upload the file
     try:
-        response = S3_CLIENT.upload_file(file_name, bucket, object_name)
+        response = S3_CLIENT.upload_file(file_name, bucket, object_name, ExtraArgs={'ServerSideEncryption': 'AES256'})
         logging.info(response)
     except ClientError as e:
         logging.error(e)
