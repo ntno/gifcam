@@ -21,11 +21,6 @@ Parameters:
     Type: String
     Description: name of bucket containing lambda code 
 Resources:
-  PicamLambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: !Sub '/aws/lambda/${PicamLambdaName}-${AWS::Region}'
-      RetentionInDays: 30
   PicamLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -165,19 +160,12 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
-              - Sid: WriteToLambdaLogGroup
+              - Sid: CloudWatchLogAccess
                 Action: 
+                  - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Effect: Allow
                 Resource: 
-                  - !GetAtt
-                    - PicamLambdaLogGroup
-                    - Arn
-                  - !Join
-                    - ''
-                    - - !GetAtt
-                        - PicamLambdaLogGroup
-                        - Arn
-                      - ':log-stream:*'
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
       RoleName: !Sub '${PicamLambdaRoleName}-${AWS::Region}'
