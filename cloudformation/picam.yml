@@ -144,6 +144,20 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
+              - Sid: CreateLogGroup
+                Action:
+                  - logs:CreateLogGroup
+                Effect: Allow
+                Resource: 
+                  - '*'
+              - Sid: WriteToLogGroup
+                Action: 
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${PicamLambdaName}-${AWS::Region}'
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${PicamLambdaName}-${AWS::Region}:log-stream:*'
       RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
   PicamLambdaExecutionRole:
     Type: AWS::IAM::Role
