@@ -27,15 +27,17 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
   * ssm-secure looks interesting but isn't available for all resource types
     * ssm + default at rest encryption ?
     * then the tokens are only inside AWS after initial set?
-
+* handle no wifi connection
 
 ## Resources
 * [how to create a python lambda deployment package](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html)
 * [ssm-secure](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html) looks useful but is only supported on certain resource types
-
+* [iot lifecycle presentation](https://www.slideshare.net/AmazonWebServices/the-lifecycle-of-an-aws-iot-thing)
+* [iot security white paper](https://d1.awsstatic.com/whitepapers/architecture/AWS-IoT-Lens.pdf)
+* [simple aws iot setup](https://teenenggr.in/2018/10/11/how-to-setup-aws-iot-with-raspberrypi/)
 
 ## Extra Installation Steps for AWS integration
-see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)
+--see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)--
 
 
 [ssl module is not available error](https://stackoverflow.com/questions/44290926/pip-cannot-confirm-ssl-certificate-ssl-module-is-not-available)
@@ -52,11 +54,16 @@ hopefully if you run these commands first you won't have to reconfigure / remake
 * `make -j4`
 * `sudo make install`
 
-update existing install (if you get the openssl error)
-* `./configure`
-* `make -j4`
-* `sudo make install`
+add local bin to PATH (set in .bashrc)
+
+    #add user bin to path
+    export PATH="$PATH:~/.local/bin"
 
 
-install boto3
-* `pip3 install boto3`
+install additional libraries (`pip3 install --user x`)
+* awscli
+* boto3
+* AWSIoTPythonSDK
+* RPi.GPIO
+* picamera
+
