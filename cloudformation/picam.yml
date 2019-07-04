@@ -16,11 +16,37 @@ Parameters:
     Type: String
     Description: prefix for the Lambda function which will tweet gifs
     Default: picam-tweet-gifs
+  GenerateUrlLambdaRoleName:
+    Type: String
+    Description: prefix for the IAM role Lambda will use to generate a presigned URL for the pi
+    Default: picam-generate-s3-url-ex
+  GenerateUrlLambdaName:
+    Type: String
+    Description: prefix for the Lambda function which will generate a presigned URL for the pi
+    Default: picam-generate-s3-url
   #NOTE - this bucket is not created via the picam.yml template, you must create it beforehand and upload the code
   CodeBucketName:
     Type: String
     Description: name of bucket containing lambda code 
 Resources:
+  GenerateUrlLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        S3Bucket: !Ref CodeBucketName
+        S3Key: lambda/picam/generateUrl.zip
+      Description: generates a presigned url so that the pi can upload gifs without access keys
+      Environment: 
+        Variables:
+          #NOTE - you must store the tokens in a systems manager parameter store beforehand
+          #store must be in the same region as the cloud formation stack
+          URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:1}}'
+      FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
+      Handler: generateUrl.lambda_handler
+      Role: !GetAtt 
+        - GenerateUrlLambdaExecutionRole
+        - Arn
+      Runtime: python3.6
   TwitterLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -39,7 +65,7 @@ Resources:
           TWITTER_OAUTH_TOKEN_SECRET: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN_SECRET:1}}'
           TWITTER_MESSAGE: '{{resolve:ssm:TWITTER_PICAM_STATUS_MESSAGE:2}}'
       FunctionName: !Sub '${TwitterLambdaName}-${AWS::Region}'
-      Handler: function.lambda_handler
+      Handler: tweet.lambda_handler
       Role: !GetAtt 
         - TwitterLambdaExecutionRole
         - Arn
@@ -169,3 +195,33 @@ Resources:
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${TwitterLambdaRoleName}-${AWS::Region}'
+  GenerateUrlLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies: 
+        - PolicyName: !Sub '${GenerateUrlLambdaRoleName}-${AWS::Region}-permissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: PutObjectToGifsFolder
+                Action: 's3:PutObject'
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
+              - Sid: CloudWatchLogAccess
+                Action: 
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: 
+                  - 'arn:aws:logs:*:*:*'
+            # - Sid: GeneratePresignedUrl
+      RoleName: !Sub '${GenerateUrlLambdaRoleName}-${AWS::Region}'
