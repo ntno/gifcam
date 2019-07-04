@@ -15,22 +15,25 @@ camera.rotation = 90
 camera.image_effect = 'none'
 
 def captureFrames(numFrames=num_frame):
+    print("Capturing {} Frames".format(numFrames))
     for i in range(numFrames):
         camera.capture('{0:04d}.jpg'.format(i))
 
 def copyFramesForRebound(numFrames=num_frame):
     print("Copying captures for rebound")
     for i in range(numFrames - 1):
-        source = str(numFrames - i - 1) + ".jpg"
+        source = '{}.jpg'.format(str(numFrames - i - 1))
         source = source.zfill(8) # pad with zeros
-        dest = str(numFrames + i) + ".jpg"
+
+        dest = '{}.jpg'.format(str(numFrames + i))
         dest = dest.zfill(8) # pad with zeros
-        copyCommand = "cp " + source + " " + dest
+
+        copyCommand = 'cp {} {}'.format(source, dest)
         os.system(copyCommand)
 
-def createGif(filename, delay=gif_delay, removeFrames=False):
-    print('Creating Gif')
-    graphicsmagickCommand = "gm convert -delay " + str(delay) + " " + "*.jpg " + filename + ".gif"
+def createGif(filename, delay=gif_delay, removeFrames=True):
+    print('Creating Gif, delay={}'.format(delay))
+    graphicsmagickCommand =  'gm convert -delay {} *.jpg {}.gif'.format(str(delay), filename)
     os.system(graphicsmagickCommand)
     if(removeFrames):
         os.system("rm ./*.jpg") # cleanup source images
