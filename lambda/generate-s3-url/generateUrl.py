@@ -1,4 +1,7 @@
-import os, boto3, time, logging
+import os
+import logging
+import boto3
+import uuid
 from botocore.exceptions import ClientError
 
 BUCKET_NAME = os.getenv('BUCKET_NAME')
@@ -8,9 +11,9 @@ URL_TIMEOUT = os.getenv('URL_TIMEOUT')
 S3_CLIENT = boto3.client('s3')
 
 def generateFileName():
-    return '{}.gif'.format(time.time_ns())
+    return '{}.gif'.format(str(uuid.uuid1()))
 
-def create_presigned_url(bucket_name, object_name=generateFileName(), expiration=URL_TIMEOUT):
+def create_presigned_url(bucket_name=BUCKET_NAME, object_name=generateFileName(), expiration=URL_TIMEOUT):
     """Generate a presigned URL to share an S3 object
 
     :param bucket_name: string
@@ -34,8 +37,10 @@ def create_presigned_url(bucket_name, object_name=generateFileName(), expiration
 
 
 
-def lambda_handler(event, context):    
-    print(event)
-    return {'status':200}
+def lambda_handler(event, context):  
+    presignedUrl = str(create_presigned_url())
+    return {'status':200, 'url': presignedUrl}
 
-if __main__
+if __name__ == "__main__":
+    DEBUG=True
+    print(lambda_handler(None, None))
