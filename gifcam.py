@@ -1,10 +1,7 @@
-import picamera
+import picamera, os, random, string
 from time import sleep
-import time
-import RPi.GPIO as GPIO
-from os import system
-import os
-import random, string
+from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
+
 
 ########################
 #
@@ -15,24 +12,6 @@ num_frame = 8       # Number of frames in Gif
 gif_delay = 15      # Frame delay [ms]
 rebound = True      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
-
-
-########################
-#
-# Define GPIO
-#
-########################
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
-button = 19 #Button GPIO Pin
-GPIO.setup(button, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-led_1 = 10 #Status LED GPIO Pin
-GPIO.setup(led_1, GPIO.OUT)
-buttonLed = GPIO.PWM(led_1, 10)
-led_2 = 12 #ON/OFF LED Pin
-GPIO.setup(led_2, GPIO.OUT)
-statusLed = GPIO.PWM(led_2, 2)
 
 
 ########################
@@ -48,8 +27,7 @@ camera.image_effect = 'none'
 ##GPIO.output(led_2, 1)
 
 # Indicate ready status
-buttonLed.start(100)
-statusLed.start(0)
+turnOnStatusLight()
 
 print('System Ready')
 
@@ -90,39 +68,37 @@ def createGif(filename, delay=gif_delay):
 
 try:
     while True:
-        if GPIO.input(button) == False: # Button Pressed
-
+        if isButtonPressed():
             ### TAKING PICTURES ###
-            print('Gif Started')
-            statusLed.ChangeDutyCycle(0)
-            buttonLed.ChangeDutyCycle(50)
-
-            randomstring = random_generator()
+            print('Capture Started')
+            turnOffStatusLight()
+            flashButtonLight()
             captureFrames()
+            turnOffButtonLight()
 
             ### PROCESSING GIF ###
-            statusLed.ChangeDutyCycle(50)
-            buttonLed.ChangeDutyCycle(0)
+            print('Processing Gif')
+            flashStatusLight()
             if rebound == True: # make copy of images in reverse order
                 copyFramesForRebound()
-                
+            randomstring = random_generator()
             filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
             createGif(filename)
+            turnOffStatusLight()
 
             ### UPLOAD TO AWS ###
             if(UPLOAD):
-                statusLed.ChangeDutyCycle(25)
-                buttonLed.ChangeDutyCycle(0)
+                flashButtonLight()
                 uploadToS3()
+                turnOffButtonLight()
 
             print('Done')
             print('System Ready')
 
         else : # Button NOT pressed
             ### READY TO MAKE GIF ###
-            statusLed.ChangeDutyCycle(0)
-            buttonLed.ChangeDutyCycle(100)
+            turnOnStatusLight()
             sleep(0.05)
 
 except:
-    GPIO.cleanup()
+    cleanup()
