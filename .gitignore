@@ -1,6 +1,7 @@
 *.gif
 *.jpg
 *.zip
+__pycache__
 **/package
 **/update-stack.sh
 **/create-stack.sh
