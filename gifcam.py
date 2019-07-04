@@ -69,6 +69,24 @@ def uploadToS3():
     #     buttonLed.ChangeDutyCycle(0)
     #     sleep(2)
 
+def captureFrames(numFrames=num_frame):
+    for i in range(numFrames):
+        camera.capture('{0:04d}.jpg'.format(i))
+
+def copyFramesForRebound(numFrames=num_frame):
+    for i in range(numFrames - 1):
+        source = str(numFrames - i - 1) + ".jpg"
+        source = source.zfill(8) # pad with zeros
+        dest = str(numFrames + i) + ".jpg"
+        dest = dest.zfill(8) # pad with zeros
+        copyCommand = "cp " + source + " " + dest
+        os.system(copyCommand)
+
+def createGif(filename, delay=gif_delay):
+    print('Processing')
+    graphicsmagickCommand = "gm convert -delay " + str(delay) + " " + "*.jpg " + filename + ".gif"
+    os.system(graphicsmagickCommand)
+    os.system("rm ./*.jpg") # cleanup source images
 
 try:
     while True:
@@ -80,26 +98,16 @@ try:
             buttonLed.ChangeDutyCycle(50)
 
             randomstring = random_generator()
-            for i in range(num_frame):
-                camera.capture('{0:04d}.jpg'.format(i))
+            captureFrames()
 
             ### PROCESSING GIF ###
             statusLed.ChangeDutyCycle(50)
             buttonLed.ChangeDutyCycle(0)
             if rebound == True: # make copy of images in reverse order
-                for i in range(num_frame - 1):
-                    source = str(num_frame - i - 1) + ".jpg"
-                    source = source.zfill(8) # pad with zeros
-                    dest = str(num_frame + i) + ".jpg"
-                    dest = dest.zfill(8) # pad with zeros
-                    copyCommand = "cp " + source + " " + dest
-                    os.system(copyCommand)
-
+                copyFramesForRebound()
+                
             filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
-            print('Processing')
-            graphicsmagick = "gm convert -delay " + str(gif_delay) + " " + "*.jpg " + filename + ".gif"
-            os.system(graphicsmagick)
-            os.system("rm ./*.jpg") # cleanup source images
+            createGif(filename)
 
             ### UPLOAD TO AWS ###
             if(UPLOAD):
