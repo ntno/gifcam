@@ -40,7 +40,9 @@ Resources:
         Variables:
           #NOTE - you must store the tokens in a systems manager parameter store beforehand
           #store must be in the same region as the cloud formation stack
-          URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:1}}'
+          URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
+          BUCKET_NAME: !Ref PicamBucket
+          PUT_PREFIX: 'gifs/'
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 
@@ -223,5 +225,4 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
-            # - Sid: GeneratePresignedUrl
       RoleName: !Sub '${GenerateUrlLambdaRoleName}-${AWS::Region}'
