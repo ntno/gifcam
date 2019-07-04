@@ -18,10 +18,10 @@ GPIO.setup(led_1, GPIO.OUT)
 led_2 = 12
 GPIO.setup(led_2, GPIO.OUT)
 
-buttonLed = GPIO.PWM(led_2, led_2)
+buttonLed = GPIO.PWM(led_2, 1)
 buttonLed.start(0)
 
-statusLed = GPIO.PWM(led_1, led_1)
+statusLed = GPIO.PWM(led_1, 1)
 statusLed.start(0)
 
 FLASH_RATE=20
@@ -46,6 +46,8 @@ def turnOffStatusLight():
     statusLed.ChangeDutyCycle(0)
 
 def cleanup():
+    buttonLed.stop()
+    statusLed.stop()
     GPIO.cleanup()
 
 if __name__ == "__main__":
