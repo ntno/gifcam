@@ -52,6 +52,7 @@ def captureFrames(numFrames=num_frame):
         camera.capture('{0:04d}.jpg'.format(i))
 
 def copyFramesForRebound(numFrames=num_frame):
+    print("Copying captures for rebound")
     for i in range(numFrames - 1):
         source = str(numFrames - i - 1) + ".jpg"
         source = source.zfill(8) # pad with zeros
@@ -61,7 +62,7 @@ def copyFramesForRebound(numFrames=num_frame):
         os.system(copyCommand)
 
 def createGif(filename, delay=gif_delay):
-    print('Processing')
+    print('Creating Gif')
     graphicsmagickCommand = "gm convert -delay " + str(delay) + " " + "*.jpg " + filename + ".gif"
     os.system(graphicsmagickCommand)
     os.system("rm ./*.jpg") # cleanup source images
@@ -77,7 +78,7 @@ try:
             turnOffButtonLight()
 
             ### PROCESSING GIF ###
-            print('Processing Gif')
+            print('Processing')
             flashStatusLight()
             if rebound == True: # make copy of images in reverse order
                 copyFramesForRebound()
