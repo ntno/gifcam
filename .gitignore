@@ -1,8 +1,8 @@
 *.gif
 *.jpg
 *.zip
-cloudformation/package
-cloudformation/update-stack.sh
-cloudformation/create-stack.sh
-cloudformation/update-code.sh
+**/package
+**/update-stack.sh
+**/create-stack.sh
+**/update-code.sh
 *.code-workspace
