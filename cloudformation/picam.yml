@@ -8,20 +8,20 @@ Parameters:
     Type: String
     Description: prefix for the IAM role pi will use to upload files
     Default: picam-pi-ex
-  PicamLambdaRoleName:
+  TwitterLambdaRoleName:
     Type: String
-    Description: prefix for the IAM role Lambda will process gifs
-    Default: picam-lambda-ex
-  PicamLambdaName:
+    Description: prefix for the IAM role Lambda will use to tweet gifs
+    Default: picam-tweet-gifs-ex
+  TwitterLambdaName:
     Type: String
-    Description: prefix for the Lambda function which will process gifs
-    Default: picam-process-gifs
+    Description: prefix for the Lambda function which will tweet gifs
+    Default: picam-tweet-gifs
   #NOTE - this bucket is not created via the picam.yml template, you must create it beforehand and upload the code
   CodeBucketName:
     Type: String
     Description: name of bucket containing lambda code 
 Resources:
-  PicamLambda:
+  TwitterLambda:
     Type: AWS::Lambda::Function
     Properties: 
       Code: 
@@ -38,17 +38,17 @@ Resources:
           TWITTER_OAUTH_TOKEN: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN:1}}'
           TWITTER_OAUTH_TOKEN_SECRET: '{{resolve:ssm:TWITTER_PICAM_OAUTH_TOKEN_SECRET:1}}'
           TWITTER_MESSAGE: '{{resolve:ssm:TWITTER_PICAM_STATUS_MESSAGE:2}}'
-      FunctionName: !Sub '${PicamLambdaName}-${AWS::Region}'
+      FunctionName: !Sub '${TwitterLambdaName}-${AWS::Region}'
       Handler: function.lambda_handler
       Role: !GetAtt 
-        - PicamLambdaExecutionRole
+        - TwitterLambdaExecutionRole
         - Arn
       Runtime: python3.6
-  PicamLambdaInvokePermission:
+  TwitterLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt
-        - PicamLambda
+        - TwitterLambda
         - Arn
       Action: 'lambda:InvokeFunction'
       Principal: s3.amazonaws.com
@@ -56,7 +56,7 @@ Resources:
       SourceArn: !Sub 'arn:aws:s3:::${PicamBucketName}'         #use sub and not ref to avoid circular dependency 
   PicamBucket: 
     DependsOn:
-      - PicamLambdaInvokePermission
+      - TwitterLambdaInvokePermission
     Type: AWS::S3::Bucket
     Properties: 
       AccessControl: Private
@@ -81,7 +81,7 @@ Resources:
                     Name: suffix
                     Value: '.gif'
             Function: !GetAtt
-              - PicamLambda
+              - TwitterLambda
               - Arn
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -140,7 +140,7 @@ Resources:
                 Resource: 
                   - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
       RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
-  PicamLambdaExecutionRole:
+  TwitterLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -151,7 +151,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       Policies: 
-        - PolicyName: !Sub '${PicamLambdaRoleName}-${AWS::Region}-permissions'
+        - PolicyName: !Sub '${TwitterLambdaRoleName}-${AWS::Region}-permissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
@@ -168,4 +168,4 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
-      RoleName: !Sub '${PicamLambdaRoleName}-${AWS::Region}'
+      RoleName: !Sub '${TwitterLambdaRoleName}-${AWS::Region}'
