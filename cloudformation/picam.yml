@@ -167,5 +167,5 @@ Resources:
                   - logs:PutLogEvents
                 Effect: Allow
                 Resource: 
-                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+                  - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${PicamLambdaRoleName}-${AWS::Region}'

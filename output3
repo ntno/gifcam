@@ -1,0 +1,25 @@
+pi@picam:~ $ pip3 install --user pipenv
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Collecting pipenv
+  Downloading https://files.pythonhosted.org/packages/13/b4/3ffa55f77161cff9a5220f162670f7c5eb00df52e00939e203f601b0f579/pipenv-2018.11.26-py3-none-any.whl (5.2MB)
+     |████████████████████████████████| 5.2MB 852kB/s 
+Collecting virtualenv (from pipenv)
+  Downloading https://files.pythonhosted.org/packages/c4/9a/a3f62ac5122a65dec34ad4b5ed8d802633dae4bc06a0fc62e55fe3e96fe1/virtualenv-16.6.1-py2.py3-none-any.whl (2.0MB)
+     |████████████████████████████████| 2.0MB 1.1MB/s 
+Collecting certifi (from pipenv)
+  Downloading https://files.pythonhosted.org/packages/69/1b/b853c7a9d4f6a6d00749e94eb6f3a041e342a885b87340b79c1ef73e3a78/certifi-2019.6.16-py2.py3-none-any.whl (157kB)
+     |████████████████████████████████| 163kB 1.3MB/s 
+Collecting virtualenv-clone>=0.2.5 (from pipenv)
+  Downloading https://files.pythonhosted.org/packages/ba/f8/50c2b7dbc99e05fce5e5b9d9a31f37c988c99acd4e8dedd720b7b8d4011d/virtualenv_clone-0.5.3-py2.py3-none-any.whl
+Collecting setuptools>=36.2.1 (from pipenv)
+  Downloading https://files.pythonhosted.org/packages/ec/51/f45cea425fd5cb0b0380f5b0f048ebc1da5b417e48d304838c02d6288a1e/setuptools-41.0.1-py2.py3-none-any.whl (575kB)
+     |████████████████████████████████| 583kB 840kB/s 
+Requirement already satisfied: pip>=9.0.1 in /usr/local/lib/python3.6/site-packages (from pipenv) (19.1.1)
+Installing collected packages: virtualenv, certifi, virtualenv-clone, setuptools, pipenv
+  WARNING: The script virtualenv is installed in '/home/pi/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script virtualenv-clone is installed in '/home/pi/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The scripts pipenv and pipenv-resolver are installed in '/home/pi/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed certifi-2019.6.16 pipenv-2018.11.26 setuptools-41.0.1 virtualenv-16.6.1 virtualenv-clone-0.5.3
