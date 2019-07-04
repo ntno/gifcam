@@ -36,6 +36,7 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [iot security white paper](https://d1.awsstatic.com/whitepapers/architecture/AWS-IoT-Lens.pdf)
 * [simple aws iot setup](https://teenenggr.in/2018/10/11/how-to-setup-aws-iot-with-raspberrypi/)
 * [aws iot architecture example](https://www.youtube.com/watch?v=gKMaf5E-z7Q&feature=youtu.be&t=2312)
+* [led flashing without sleep](https://raspberrypi.stackexchange.com/questions/28984/how-to-blink-leds-on-off-continually-while-continuing-execution-of-a-script)
 
 ## Extra Installation Steps for AWS integration
 --see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)--
