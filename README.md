@@ -35,6 +35,7 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [iot lifecycle presentation](https://www.slideshare.net/AmazonWebServices/the-lifecycle-of-an-aws-iot-thing)
 * [iot security white paper](https://d1.awsstatic.com/whitepapers/architecture/AWS-IoT-Lens.pdf)
 * [simple aws iot setup](https://teenenggr.in/2018/10/11/how-to-setup-aws-iot-with-raspberrypi/)
+* [aws iot architecture example](https://www.youtube.com/watch?v=gKMaf5E-z7Q&feature=youtu.be&t=2312)
 
 ## Extra Installation Steps for AWS integration
 --see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)--
