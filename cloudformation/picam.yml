@@ -16,17 +16,6 @@ Parameters:
     Type: String
     Description: prefix for the Lambda function which will create gif from raw jpgs
     Default: picam-create-gif
-  #NOTE - this bucket is not created via the picam.yml template, you must create it beforehand and upload the code
-  CodeBucketName:
-    Type: String
-    Description: name of bucket containing lambda code 
-  #NOTE - this lambda layer is not created via the picam.yml template
-  #you can use the layer created by @rpidanny (DEFAULT) or create your own
-  #if you use the default layer then you may need to update the region to match your lambda functions
-  GraphicsMagickLambdaLayerArn:
-    Type: String
-    Description: location of lambda layer with GraphicsMagick installed - defaults to layer by @rpidanny
-    Default: arn:aws:lambda:us-east-2:175033217214:layer:graphicsmagick:2
   RawJpgsObjectKey:
     Type: String
     Description: key where raw jpgs will be stored
@@ -35,6 +24,17 @@ Parameters:
     Type: String
     Description: key where raw jpgs will be stored
     Default: 'gifs'
+  #NOTE - the code bucket is not created via the picam.yml template, you must create it beforehand and upload the code
+  CodeBucketName:
+    Type: String
+    Description: name of bucket containing lambda code 
+  #NOTE - the graphics magick lambda layer is not created via the picam.yml template
+  #you can use the layer created by @rpidanny (DEFAULT) or create your own
+  #if you use the default layer then you may need to update the region to match your lambda functions
+  GraphicsMagickLambdaLayerArn:
+    Type: String
+    Description: location of lambda layer with GraphicsMagick installed
+    Default: arn:aws:lambda:us-east-2:175033217214:layer:graphicsmagick:2
 Resources:
   WriteToGifsFolderPolicy:
     Type: AWS::IAM::Policy
