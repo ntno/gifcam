@@ -4,10 +4,6 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
-  PicamRoleName:
-    Type: String
-    Description: prefix for the IAM role pi will use to upload files
-    Default: picam-pi-ex
   TwitterLambdaName:
     Type: String
     Description: prefix for the Lambda function which will tweet gifs
@@ -63,7 +59,7 @@ Resources:
             Resource: 
               - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
       Roles: 
-        - !Ref PicamExecutionRole
+        - !Ref GenerateUrlLambdaExecutionRole
   ReadGifsFolderPolicy:
     Type: AWS::IAM::Policy
     Properties: 
@@ -90,6 +86,24 @@ Resources:
               - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
       Roles: 
         - !Ref CreateGifLambdaExecutionRole
+  LambdaWriteCloudwatchLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: LambdaWriteCloudwatchLogs
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Action: 
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: 
+              - 'arn:aws:logs:*:*:*'
+      Roles: 
+        - !Ref CreateGifLambdaExecutionRole
+        - !Ref TwitterLambdaExecutionRole
+        - !Ref GenerateUrlLambdaExecutionRole
   CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -228,18 +242,6 @@ Resources:
             Condition:
               'Null':
                 's3:x-amz-server-side-encryption': True
-  PicamExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS : !Ref AWS::AccountId
-            Action:
-              - sts:AssumeRole
-      RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
   TwitterLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -250,19 +252,6 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
-      Policies: 
-        - PolicyName: !Sub '${TwitterLambdaName}-EX-${AWS::Region}-permissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: CloudWatchLogAccess
-                Action: 
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: 
-                  - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${TwitterLambdaName}-EX-${AWS::Region}'
   GenerateUrlLambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -274,19 +263,6 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
-      Policies: 
-        - PolicyName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}-permissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: CloudWatchLogAccess
-                Action: 
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: 
-                  - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
   CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -298,17 +274,4 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
-      Policies: 
-        - PolicyName: !Sub '${CreateGifLambdaName}-EX-${AWS::Region}-permissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: CloudWatchLogAccess
-                Action: 
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Effect: Allow
-                Resource: 
-                  - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${CreateGifLambdaName}-EX-${AWS::Region}'
