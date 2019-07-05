@@ -221,27 +221,26 @@ Resources:
       BucketName: !Ref PicamBucketName
       NotificationConfiguration:
         LambdaConfigurations:
-          -
-            - Event: 's3:ObjectCreated:*'
-              Filter:
-                S3Key:
-                  Rules:
-                    -
-                      Name: suffix
-                      Value: '.gif'
-              Function: !GetAtt
-                - TwitterLambda
-                - Arn
-            - Event: 's3:ObjectCreated:*'
-              Filter:
-                S3Key:
-                  Rules:
-                    -
-                      Name: suffix
-                      Value: '.jpg'
-              Function: !GetAtt
-                - CreateGifLambda
-                - Arn
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  -
+                    Name: suffix
+                    Value: '.gif'
+            Function: !GetAtt
+              - TwitterLambda
+              - Arn
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  -
+                    Name: suffix
+                    Value: '.jpg'
+            Function: !GetAtt
+              - CreateGifLambda
+              - Arn
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
