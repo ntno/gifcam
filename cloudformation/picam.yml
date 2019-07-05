@@ -16,10 +16,10 @@ Parameters:
     Type: String
     Description: prefix for the Lambda function which will generate a presigned URL for the pi
     Default: picam-generate-s3-url
-  CreateGifsLambdaName:
+  CreateGifLambdaName:
     Type: String
-    Description: prefix for the Lambda function which will create gifs from raw jpgs
-    Default: picam-create-gifs
+    Description: prefix for the Lambda function which will create gif from raw jpgs
+    Default: picam-create-gif
   #NOTE - this bucket is not created via the picam.yml template, you must create it beforehand and upload the code
   CodeBucketName:
     Type: String
@@ -30,23 +30,24 @@ Parameters:
     Description: location of lambda layer with GraphicsMagick installed - defaults to layer by @rpidanny
     Default: arn:aws:lambda:us-east-2:175033217214:layer:graphicsmagick:2
 Resources:
-  CreateGifsLambda:
+  CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 
       Layers:
         - !Ref GraphicsMagickLambdaLayerArn
       Code: 
         S3Bucket: !Ref CodeBucketName
-        S3Key: lambda/picam/generateUrl.zip
+        S3Key: lambda/picam/createGif.zip
       Description: converts jpgs to gif
       Environment: 
         Variables:
           BUCKET_NAME: !Ref PicamBucket
-          PUT_PREFIX: 'gifs/'
-      FunctionName: !Sub '${CreateGifsLambdaName}-${AWS::Region}'
-      Handler: generateUrl.lambda_handler
+          INPUT_PREFIX: 'jpgs/'
+          OUTPUT_PREFIX: 'gifs/'
+      FunctionName: !Sub '${CreateGifLambdaName}-${AWS::Region}'
+      Handler: createGif.lambda_handler
       Role: !GetAtt 
-        - CreateGifsLambdaExecutionRole
+        - CreateGifLambdaExecutionRole
         - Arn
       Runtime: python3.6
   GenerateUrlLambda:
@@ -55,14 +56,14 @@ Resources:
       Code: 
         S3Bucket: !Ref CodeBucketName
         S3Key: lambda/picam/generateUrl.zip
-      Description: generates a presigned url so that the pi can upload gifs without access keys
+      Description: generates a presigned url so that the pi can upload jpgs without access keys
       Environment: 
         Variables:
           #NOTE - you must store the tokens in a systems manager parameter store beforehand
           #store must be in the same region as the cloud formation stack
           URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
           BUCKET_NAME: !Ref PicamBucket
-          PUT_PREFIX: 'gifs/'
+          PUT_PREFIX: 'jpgs/'
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 
@@ -232,11 +233,11 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: PutObjectToGifsFolder
+              - Sid: PutObjectToJpgsFolder
                 Action: 's3:PutObject'
                 Effect: Allow
                 Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
+                  - !Sub 'arn:aws:s3:::${PicamBucketName}/jpgs/*'   #use sub and not ref to avoid circular dependency 
               - Sid: CloudWatchLogAccess
                 Action: 
                   - logs:CreateLogGroup
@@ -246,7 +247,7 @@ Resources:
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
       RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
-  CreateGifsLambdaExecutionRole:
+  CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -257,10 +258,15 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       Policies: 
-        - PolicyName: !Sub '${CreateGifsLambdaName}-EX-${AWS::Region}-permissions'
+        - PolicyName: !Sub '${CreateGifLambdaName}-EX-${AWS::Region}-permissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
+              - Sid: ReadFromJpgsFolder
+                Action: 's3:GetObject'
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${PicamBucketName}/jpgs/*'   #use sub and not ref to avoid circular dependency 
               - Sid: PutObjectToGifsFolder
                 Action: 's3:PutObject'
                 Effect: Allow
@@ -274,4 +280,4 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
-      RoleName: !Sub '${CreateGifsLambdaName}-EX-${AWS::Region}'
+      RoleName: !Sub '${CreateGifLambdaName}-EX-${AWS::Region}'
