@@ -29,7 +29,67 @@ Parameters:
     Type: String
     Description: location of lambda layer with GraphicsMagick installed - defaults to layer by @rpidanny
     Default: arn:aws:lambda:us-east-2:175033217214:layer:graphicsmagick:2
+  RawJpgsObjectKey:
+    Type: String
+    Description: key where raw jpgs will be stored
+    Default: 'jpgs'
+  GifsObjectKey:
+    Type: String
+    Description: key where raw jpgs will be stored
+    Default: 'gifs'
 Resources:
+  WriteToGifsFolderPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: WriteToPicamGifsFolder
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Action: 's3:PutObject'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/${GifsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
+      Roles: 
+        - !Ref CreateGifLambdaExecutionRole
+  WriteToJpgsFolderPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: WriteToPicamJpgsFolder
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Action: 's3:PutObject'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
+      Roles: 
+        - !Ref PicamExecutionRole
+  ReadGifsFolderPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: ReadGifsFolder
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Action: 's3:GetObject'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/${GifsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
+      Roles: 
+        - !Ref TwitterLambdaExecutionRole
+  ReadJpgsFolderPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyName: ReadJpgsFolder
+      PolicyDocument: 
+        Version: 2012-10-17
+        Statement:
+          - Action: 's3:GetObject'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
+      Roles: 
+        - !Ref CreateGifLambdaExecutionRole
   CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -42,8 +102,8 @@ Resources:
       Environment: 
         Variables:
           BUCKET_NAME: !Ref PicamBucket
-          INPUT_PREFIX: 'jpgs/'
-          OUTPUT_PREFIX: 'gifs/'
+          INPUT_PREFIX: !Ref RawJpgsObjectKey
+          OUTPUT_PREFIX: !Ref GifsObjectKey
       FunctionName: !Sub '${CreateGifLambdaName}-${AWS::Region}'
       Handler: createGif.lambda_handler
       Role: !GetAtt 
@@ -63,7 +123,7 @@ Resources:
           #store must be in the same region as the cloud formation stack
           URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
           BUCKET_NAME: !Ref PicamBucket
-          PUT_PREFIX: 'jpgs/'
+          INPUT_PREFIX: !Ref RawJpgsObjectKey
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 
@@ -79,6 +139,7 @@ Resources:
       Description: publishes gifs to social media
       Environment: 
         Variables:
+          INPUT_PREFIX: !Ref GifsObjectKey
           TZ: ET
           #NOTE - you must store the tokens in a systems manager parameter store beforehand
           #store must be in the same region as the cloud formation stack
@@ -178,16 +239,6 @@ Resources:
               AWS : !Ref AWS::AccountId
             Action:
               - sts:AssumeRole
-      Policies: 
-        - PolicyName: !Sub '${PicamRoleName}-${AWS::Region}-permissions'
-          PolicyDocument: 
-            Version: 2012-10-17
-            Statement:
-              - Sid: WriteToGifsFolder
-                Action: 's3:PutObject'
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
       RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
   TwitterLambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -204,11 +255,6 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: ReadFromGifsFolder
-                Action: 's3:GetObject'
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
               - Sid: CloudWatchLogAccess
                 Action: 
                   - logs:CreateLogGroup
@@ -233,11 +279,6 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: PutObjectToJpgsFolder
-                Action: 's3:PutObject'
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/jpgs/*'   #use sub and not ref to avoid circular dependency 
               - Sid: CloudWatchLogAccess
                 Action: 
                   - logs:CreateLogGroup
@@ -262,16 +303,6 @@ Resources:
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
-              - Sid: ReadFromJpgsFolder
-                Action: 's3:GetObject'
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/jpgs/*'   #use sub and not ref to avoid circular dependency 
-              - Sid: PutObjectToGifsFolder
-                Action: 's3:PutObject'
-                Effect: Allow
-                Resource: 
-                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
               - Sid: CloudWatchLogAccess
                 Action: 
                   - logs:CreateLogGroup
