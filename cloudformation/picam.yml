@@ -129,7 +129,7 @@ Resources:
       Description: converts jpgs to gif
       Environment: 
         Variables:
-          BUCKET_NAME: !Ref PicamBucket
+          BUCKET_NAME: !Ref PicamBucketName
           INPUT_PREFIX: !Ref RawJpgsObjectKey
           OUTPUT_PREFIX: !Ref GifsObjectKey
       FunctionName: !Sub '${CreateGifLambdaName}-${AWS::Region}'
@@ -192,8 +192,19 @@ Resources:
       Principal: s3.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub 'arn:aws:s3:::${PicamBucketName}'         #use sub and not ref to avoid circular dependency 
+  CreateGifLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt
+        - CreateGifLambda
+        - Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:s3:::${PicamBucketName}'         #use sub and not ref to avoid circular dependency 
   PicamBucket: 
     DependsOn:
+      - CreateGifLambdaInvokePermission
       - TwitterLambdaInvokePermission
     Type: AWS::S3::Bucket
     Properties: 
@@ -211,16 +222,26 @@ Resources:
       NotificationConfiguration:
         LambdaConfigurations:
           -
-            Event: 's3:ObjectCreated:*'
-            Filter:
-              S3Key:
-                Rules:
-                  -
-                    Name: suffix
-                    Value: '.gif'
-            Function: !GetAtt
-              - TwitterLambda
-              - Arn
+            - Event: 's3:ObjectCreated:*'
+              Filter:
+                S3Key:
+                  Rules:
+                    -
+                      Name: suffix
+                      Value: '.gif'
+              Function: !GetAtt
+                - TwitterLambda
+                - Arn
+            - Event: 's3:ObjectCreated:*'
+              Filter:
+                S3Key:
+                  Rules:
+                    -
+                      Name: suffix
+                      Value: '.jpg'
+              Function: !GetAtt
+                - CreateGifLambda
+                - Arn
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
