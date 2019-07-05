@@ -3,6 +3,7 @@
 *.zip
 __pycache__
 **/package
+**/gm-layer
 **/update-stack.sh
 **/create-stack.sh
 **/delete-stack.sh
