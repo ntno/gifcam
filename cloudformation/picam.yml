@@ -20,7 +20,9 @@ Parameters:
   CodeBucketName:
     Type: String
     Description: name of bucket containing lambda code 
-  #NOTE - the lambda layer must be in the same region as your lambda function, you may need to update the default value accordingly
+  #NOTE - this lambda layer is not created via the picam.yml template
+  #you can use the layer created by @rpidanny (DEFAULT) or create your own
+  #if you use the default layer then you may need to update the region to match your lambda functions
   GraphicsMagickLambdaLayerArn:
     Type: String
     Description: location of lambda layer with GraphicsMagick installed - defaults to layer by @rpidanny
