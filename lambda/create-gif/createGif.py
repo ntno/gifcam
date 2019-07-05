@@ -5,42 +5,134 @@ import uuid
 from botocore.exceptions import ClientError
 
 BUCKET_NAME = os.getenv('BUCKET_NAME')
-PUT_PREFIX = os.getenv('PUT_PREFIX')
-URL_TIMEOUT = os.getenv('URL_TIMEOUT')
+INPUT_PREFIX = os.getenv('INPUT_PREFIX')
+OUTPUT_PREFIX = os.getenv('OUTPUT_PREFIX')
 
-S3_CLIENT = boto3.client('s3')
+def getParent(key):
+    pathList = key.rsplit('/')[0:-1]
+    return '/'.join(pathList)
 
-def generateFileName():
-    return '{}.gif'.format(str(uuid.uuid1()))
+def getParentFolderName(key):
+    return key.rsplit('/')[-2]
 
-def create_presigned_url(bucket_name=BUCKET_NAME, object_name=generateFileName(), expiration=URL_TIMEOUT):
-    """Generate a presigned URL to share an S3 object
 
-    :param bucket_name: string
-    :param object_name: string
-    :param expiration: Time in seconds for the presigned URL to remain valid
-    :return: Presigned URL as string. If error, returns None.
-    """
+def getFileName(key):
+    return key.rsplit('/')[-1]
 
-    # Generate a presigned URL for the S3 object
-    try:
-        response = S3_CLIENT.generate_presigned_url('get_object',
-                                                    Params={'Bucket': bucket_name,
-                                                            'Key': '{}{}'.format(PUT_PREFIX, object_name)},
-                                                    ExpiresIn=expiration)
-    except ClientError as e:
-        logging.error(e)
-        return None
+def getFileInfo(event):
+  record = event['Records'][0]
+  bucket = record['s3']['bucket']['name']
+  key = record['s3']['object']['key']
+  parentKey = '{}/'.format(getParent(key))
+  parentFolderName = getParentFolderName(key)
 
-    # The response contains the presigned URL
-    return response
+  fileInfo = {}
+  fileInfo['bucket'] = bucket
+  fileInfo['key'] = key
+  fileInfo['parentKey'] = parentKey
+  fileInfo['parentFolderName'] = parentFolderName
+  return fileInfo
 
+def getBucketResource(bucketName):
+    s3Resource = boto3.resource('s3')
+    bucket = s3Resource.Bucket(name=bucketName)
+    return bucket
+
+def downloadJpgsToTemp(fileInfo):
+    bucketName = fileInfo['bucket']
+    folderKey = fileInfo['parentKey']
+    folderName = fileInfo['parentFolderName']
+
+    downloadFolderPath = os.path.join('/tmp', folderName)
+    if(not os.path.exists(downloadFolderPath)):
+        os.mkdir(downloadFolderPath)
+
+    bucket = getBucketResource(bucketName)
+
+    # only download top level objects (no subfolders)
+    for obj in bucket.objects.filter(Prefix = folderKey):
+        #skip the 'folder' itself
+        if(folderKey == obj.key):
+            pass
+        else:
+            fileDownloadPath = os.path.join(downloadFolderPath, getFileName(obj.key))
+            bucket.download_file(obj.key, fileDownloadPath)
+    
+    fileInfo['local-jpgs'] = '{}/*.jpg'.format(downloadFolderPath)
+    fileInfo['local-gif'] = '{}/{}.gif'.format(downloadFolderPath, folderName)
+    return fileInfo
+
+def makeGif(fileInfo, gifDelay):
+    gmCommand = 'gm convert -delay {} {} {}'.format(str(gifDelay), fileInfo['local-jpgs'], fileInfo['local-gif'])
+    os.system(gmCommand)
+    return fileInfo
+
+def copyGifToS3(fileInfo):
+    bucketName = fileInfo['bucket']
+    bucket = getBucketResource(bucketName)
+    uploadResponse = bucket.put_object(
+        Body=fileInfo['local-gif'],
+        Key='{}.gif'.format(fileInfo['parentKey']),
+        ServerSideEncryption='AES256',
+    )
+    fileInfo['gif-upload-response'] = uploadResponse
+    return fileInfo
 
 
 def lambda_handler(event, context):  
-    presignedUrl = str(create_presigned_url())
-    return {'status':200, 'url': presignedUrl}
+    fileInfo = getFileInfo(TEST_EVENT)
+    print(fileInfo)
+
+    fileInfo = downloadJpgsToTemp(fileInfo)
+    print(fileInfo)
+
+    fileInfo = makeGif(fileInfo, 15)
+    print(fileInfo)
+
+    fileInfo = copyGifToS3(fileInfo)
+    print(fileInfo)
+
+    return {'status':200, 'info': fileInfo}
+
+TEST_EVENT = {
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-2",
+      "eventTime": "2019-03-02T18:38:49.175Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AWS:A2LPQ1GZ789FCU"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "108.97.23.193"
+      },
+      "responseElements": {
+        "x-amz-request-id": "747F09J7D0D6E9DF",
+        "x-amz-id-2": "XAmTajPHHFKAQ2gsd87IUaw3AXtYbohWplPgOl/oSga7dgDQmbT6Q059NmRHmYk46l7g5o="
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "5e223200-528c-4416-bf50-8c6e9af7efa8",
+        "bucket": {
+          "name": "picam",
+          "ownerIdentity": {
+            "principalId": "A2LPQ1GZ789FCU"
+          },
+          "arn": "arn:aws:s3:::picam"
+        },
+        "object": {
+          "key": "jpgs/XYZ1234/sometimestamp.txt",
+          "size": 47,
+          "eTag": "de1b32cb27c6fb9svs3e8243521ce68",
+          "versionId": "iZ1jK78k23MR29tkHXGNFFYaXO5",
+          "sequencer": "005C7ACDBSD30A0E64CF"
+        }
+      }
+    }
+  ]
+}
 
 if __name__ == "__main__":
-    DEBUG=True
-    print(lambda_handler(None, None))
+    lambda_handler(TEST_EVENT, None)
