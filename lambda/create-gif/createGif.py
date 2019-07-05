@@ -70,17 +70,21 @@ def makeGif(fileInfo, gifDelay):
 def copyGifToS3(fileInfo):
     bucketName = fileInfo['bucket']
     bucket = getBucketResource(bucketName)
-    uploadResponse = bucket.put_object(
-        Body=fileInfo['local-gif'],
-        Key='{}.gif'.format(fileInfo['parentKey']),
-        ServerSideEncryption='AES256',
-    )
+
+    fileInfo['gif-upload-path'] = '{}/{}.gif'.format(OUTPUT_PREFIX, fileInfo['parentFolderName'])
+
+    try:
+      uploadResponse = bucket.upload_file(fileInfo['local-gif'], fileInfo['gif-upload-path'], ExtraArgs={'ServerSideEncryption': 'AES256'})
+      uploadResponse = 'uploaded without exception'
+    except Exception as ex: 
+      uploadResponse = str(ex)
+
     fileInfo['gif-upload-response'] = uploadResponse
     return fileInfo
 
 
 def lambda_handler(event, context):  
-    fileInfo = getFileInfo(TEST_EVENT)
+    fileInfo = getFileInfo(event)
     print(fileInfo)
 
     fileInfo = downloadJpgsToTemp(fileInfo)
