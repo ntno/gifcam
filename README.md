@@ -1,7 +1,8 @@
 fork of [nickbrewer/gifcam](https://github.com/nickbrewer/gifcam)
 
-* updated to upload gifs to AWS S3 instead of Twitter
-* lambda function triggered on file upload posts to Twitter 
+* updated to upload raw jpgs to AWS S3
+* lambda function processes raw jpgs to gifs
+* lambda function upload gif to Twitter 
 
 ## Hardware WIP photos
 see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
@@ -9,25 +10,20 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 ## How To Use the Camera
 - Power on the camera.
 - The red status light will illuminate when the camera is ready to make a GIF.
-- When you press the button, the status LED will strobe to indicate that the camera is recording.
-- When recording finishes, the status LED will switch off.
-- The button LED will blink while the GIF is being processed
-- When processing is finished, the camera will return to the READY state, and the status LED will illuminate.
+- When you press the button, the button LED will strobe to indicate that the camera is recording.
+- When recording finishes, the button LED will switch off.
+- The red status LED will blink while the GIF is being processed
+- When processing is finished, the camera will return to the READY state, and the status LED will illuminate continuously.
 
 
 ## TODOs
-* add logging permission to lambda function
 * set up authentication with AWS IoT
 * refactor scripts so i can take out default params
 * add resource tags 
 * remove files from pi after successful upload to AWS
 
 ## Future Enhancements 
-* (requires $) encrypt environment variables in transit via CMK
-  * ssm-secure looks interesting but isn't available for all resource types
-    * ssm + default at rest encryption ?
-    * then the tokens are only inside AWS after initial set?
-* handle no wifi connection
+* handle no wifi connection (retry upload)
 
 ## Resources
 * [how to create a python lambda deployment package](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html)
