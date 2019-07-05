@@ -8,26 +8,14 @@ Parameters:
     Type: String
     Description: prefix for the IAM role pi will use to upload files
     Default: picam-pi-ex
-  TwitterLambdaRoleName:
-    Type: String
-    Description: prefix for the IAM role Lambda will use to tweet gifs
-    Default: picam-tweet-gifs-ex
   TwitterLambdaName:
     Type: String
     Description: prefix for the Lambda function which will tweet gifs
     Default: picam-tweet-gifs
-  GenerateUrlLambdaRoleName:
-    Type: String
-    Description: prefix for the IAM role Lambda will use to generate a presigned URL for the pi
-    Default: picam-generate-s3-url-ex
   GenerateUrlLambdaName:
     Type: String
     Description: prefix for the Lambda function which will generate a presigned URL for the pi
     Default: picam-generate-s3-url
-  CreateGifsLambdaRoleName:
-    Type: String
-    Description: prefix for the IAM role Lambda will use to create gifs from raw jpgs
-    Default: picam-create-gifs-ex
   CreateGifsLambdaName:
     Type: String
     Description: prefix for the Lambda function which will create gifs from raw jpgs
@@ -42,28 +30,25 @@ Parameters:
     Description: location of lambda layer with GraphicsMagick installed - defaults to layer by @rpidanny
     Default: arn:aws:lambda:us-east-2:175033217214:layer:graphicsmagick:2
 Resources:
-  # TestLambda:
-  #   Type: AWS::Lambda::Function
-  #   Properties: 
-  #     Layers:
-  #       - !Ref GraphicsMagickLambdaLayerArn
-  #     Code: 
-  #       S3Bucket: !Ref CodeBucketName
-  #       S3Key: lambda/picam/generateUrl.zip
-  #     Description: generates a presigned url so that the pi can upload gifs without access keys
-  #     Environment: 
-  #       Variables:
-  #         #NOTE - you must store the tokens in a systems manager parameter store beforehand
-  #         #store must be in the same region as the cloud formation stack
-  #         URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
-  #         BUCKET_NAME: !Ref PicamBucket
-  #         PUT_PREFIX: 'gifs/'
-  #     FunctionName: !Sub '${CreateGifsLambdaName}-${AWS::Region}'
-  #     Handler: generateUrl.lambda_handler
-  #     Role: !GetAtt 
-  #       - TestLambdaExecutionRole
-  #       - Arn
-  #     Runtime: python3.6
+  CreateGifsLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Layers:
+        - !Ref GraphicsMagickLambdaLayerArn
+      Code: 
+        S3Bucket: !Ref CodeBucketName
+        S3Key: lambda/picam/generateUrl.zip
+      Description: converts jpgs to gif
+      Environment: 
+        Variables:
+          BUCKET_NAME: !Ref PicamBucket
+          PUT_PREFIX: 'gifs/'
+      FunctionName: !Sub '${CreateGifsLambdaName}-${AWS::Region}'
+      Handler: generateUrl.lambda_handler
+      Role: !GetAtt 
+        - CreateGifsLambdaExecutionRole
+        - Arn
+      Runtime: python3.6
   GenerateUrlLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -214,7 +199,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       Policies: 
-        - PolicyName: !Sub '${TwitterLambdaRoleName}-${AWS::Region}-permissions'
+        - PolicyName: !Sub '${TwitterLambdaName}-EX-${AWS::Region}-permissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
@@ -231,7 +216,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
-      RoleName: !Sub '${TwitterLambdaRoleName}-${AWS::Region}'
+      RoleName: !Sub '${TwitterLambdaName}-EX-${AWS::Region}'
   GenerateUrlLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -243,7 +228,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       Policies: 
-        - PolicyName: !Sub '${GenerateUrlLambdaRoleName}-${AWS::Region}-permissions'
+        - PolicyName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}-permissions'
           PolicyDocument: 
             Version: 2012-10-17
             Statement:
@@ -260,33 +245,33 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - 'arn:aws:logs:*:*:*'
-      RoleName: !Sub '${GenerateUrlLambdaRoleName}-${AWS::Region}'
-  # TestLambdaExecutionRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: lambda.amazonaws.com
-  #           Action: 'sts:AssumeRole'
-  #     Policies: 
-  #       - PolicyName: !Sub '${CreateGifsLambdaRoleName}-${AWS::Region}-permissions'
-  #         PolicyDocument: 
-  #           Version: 2012-10-17
-  #           Statement:
-  #             - Sid: PutObjectToGifsFolder
-  #               Action: 's3:PutObject'
-  #               Effect: Allow
-  #               Resource: 
-  #                 - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
-  #             - Sid: CloudWatchLogAccess
-  #               Action: 
-  #                 - logs:CreateLogGroup
-  #                 - logs:CreateLogStream
-  #                 - logs:PutLogEvents
-  #               Effect: Allow
-  #               Resource: 
-  #                 - 'arn:aws:logs:*:*:*'
-  #     RoleName: !Sub '${CreateGifsLambdaRoleName}-${AWS::Region}'
+      RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
+  CreateGifsLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies: 
+        - PolicyName: !Sub '${CreateGifsLambdaName}-EX-${AWS::Region}-permissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: PutObjectToGifsFolder
+                Action: 's3:PutObject'
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${PicamBucketName}/gifs/*'   #use sub and not ref to avoid circular dependency 
+              - Sid: CloudWatchLogAccess
+                Action: 
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: 
+                  - 'arn:aws:logs:*:*:*'
+      RoleName: !Sub '${CreateGifsLambdaName}-EX-${AWS::Region}'
