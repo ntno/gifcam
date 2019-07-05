@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: creates bucket for gifs, IAM roles for Lambda and pi, and Lambda function
+AWSTemplateFormatVersion: 2010-09-09
+Description: creates bucket for gifs, IAM roles for Lambdas, and Lambda functions
 Parameters:
   PicamBucketName:
     Type: String
@@ -69,6 +69,12 @@ Resources:
       PolicyDocument: 
         Version: 2012-10-17
         Statement:
+          - Action: 
+              - 's3:ListObjects'
+              - 's3:ListBucket'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}'                      #use sub and not ref to avoid circular dependency 
           - Action: 's3:GetObject'
             Effect: Allow
             Resource: 
@@ -82,6 +88,12 @@ Resources:
       PolicyDocument: 
         Version: 2012-10-17
         Statement:
+          - Action: 
+              - 's3:ListObjects'
+              - 's3:ListBucket'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}'                        #use sub and not ref to avoid circular dependency 
           - Action: 's3:GetObject'
             Effect: Allow
             Resource: 
