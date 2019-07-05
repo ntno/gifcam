@@ -5,5 +5,6 @@ __pycache__
 **/package
 **/update-stack.sh
 **/create-stack.sh
+**/delete-stack.sh
 **/update-code.sh
 *.code-workspace
