@@ -233,12 +233,7 @@ Resources:
             Principal: '*'
             Action: 's3:PutObject'
             Resource: 
-              - !Join
-                  - ''
-                  - - !GetAtt 
-                      - PicamBucket
-                      - Arn
-                    - '/*'
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/*'
             Condition:
               StringNotEquals:
                 's3:x-amz-server-side-encryption': AES256
@@ -247,12 +242,7 @@ Resources:
             Principal: '*'
             Action: 's3:PutObject'
             Resource: 
-              - !Join
-                  - ''
-                  - - !GetAtt 
-                      - PicamBucket
-                      - Arn
-                    - '/*'
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/*'
             Condition:
               'Null':
                 's3:x-amz-server-side-encryption': True
