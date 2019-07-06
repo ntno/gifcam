@@ -36,6 +36,13 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [stack overflow on adding gm to lambda](https://stackoverflow.com/questions/44729088/how-can-i-install-graphicsmagick-or-imagemagick-on-aws-lambda)
 * [gm lambda layer by rpidanny](https://github.com/rpidanny/gm-lambda-layer)
 * [presigned post example (not working)](https://docs.aws.amazon.com/code-samples/latest/catalog/python-s3-generate_presigned_post.py.html)
+* [boto3 for presigned](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.generate_presigned_url)
+* [presigned example which uses conditions](https://devcenter.heroku.com/articles/s3-upload-python)
+* [aws signature version](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html)
+* [region signature support](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
+
+https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
+
 
 ## Extra Installation Steps for AWS integration
 --see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)--
