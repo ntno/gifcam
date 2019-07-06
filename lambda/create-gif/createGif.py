@@ -58,6 +58,7 @@ def downloadJpgsToTemp(fileInfo):
             fileDownloadPath = os.path.join(downloadFolderPath, getFileName(obj.key))
             bucket.download_file(obj.key, fileDownloadPath)
     
+    fileInfo['tmp'] = downloadFolderPath
     fileInfo['local-jpgs'] = '{}/*.jpg'.format(downloadFolderPath)
     fileInfo['local-gif'] = '{}/{}.gif'.format(downloadFolderPath, folderName)
     return fileInfo
@@ -84,6 +85,8 @@ def copyGifToS3(fileInfo):
 
 
 def lambda_handler(event, context):  
+    print(event)
+    
     fileInfo = getFileInfo(event)
     print(fileInfo)
 
