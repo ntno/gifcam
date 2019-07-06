@@ -138,6 +138,7 @@ Resources:
         - CreateGifLambdaExecutionRole
         - Arn
       Runtime: python3.6
+      Timeout: 60
   GenerateUrlLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -182,6 +183,7 @@ Resources:
         - TwitterLambdaExecutionRole
         - Arn
       Runtime: python3.6
+      Timeout: 60
   TwitterLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
