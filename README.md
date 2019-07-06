@@ -35,7 +35,7 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [led flashing without sleep](https://raspberrypi.stackexchange.com/questions/28984/how-to-blink-leds-on-off-continually-while-continuing-execution-of-a-script)
 * [stack overflow on adding gm to lambda](https://stackoverflow.com/questions/44729088/how-can-i-install-graphicsmagick-or-imagemagick-on-aws-lambda)
 * [gm lambda layer by rpidanny](https://github.com/rpidanny/gm-lambda-layer)
-
+* [presigned post example (not working)](https://docs.aws.amazon.com/code-samples/latest/catalog/python-s3-generate_presigned_post.py.html)
 
 ## Extra Installation Steps for AWS integration
 --see @nickbrewer install doc first: [README.md](https://github.com/nickbrewer/gifcam)--
