@@ -1,30 +1,16 @@
-import picamera, os, random, string
+import os, random, string
 from time import sleep
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
-
+from cameraConfig import createGif, captureFrames, copyFramesForRebound
 
 ########################
 #
 # Behaviour Variables
 #
 ########################
-num_frame = 8       # Number of frames in Gif
-gif_delay = 15      # Frame delay [ms]
-rebound = True      # Create a video that loops start <=> end
+REBOUND = True      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
 
-
-########################
-#
-# Camera
-#
-########################
-camera = picamera.PiCamera()
-camera.resolution = (540, 405)
-camera.rotation = 90
-#camera.brightness = 70
-camera.image_effect = 'none'
-##GPIO.output(led_2, 1)
 
 # Indicate ready status
 turnOnStatusLight()
@@ -36,36 +22,6 @@ def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
 
 def uploadToS3():
     pass
-    # try:
-    #     print('Posting to Twitter')
-    #     photo = open(filename + ".gif", 'rb')
-    #     response = twitter.upload_media(media=photo)
-    #     twitter.update_status(status='Taken with #PIX-E Gif Camera', media_ids=[response['media_id']])
-    # except:
-    #     # Display error with long status light
-    #     statusLed.ChangeDutyCycle(100)
-    #     buttonLed.ChangeDutyCycle(0)
-    #     sleep(2)
-
-def captureFrames(numFrames=num_frame):
-    for i in range(numFrames):
-        camera.capture('{0:04d}.jpg'.format(i))
-
-def copyFramesForRebound(numFrames=num_frame):
-    print("Copying captures for rebound")
-    for i in range(numFrames - 1):
-        source = str(numFrames - i - 1) + ".jpg"
-        source = source.zfill(8) # pad with zeros
-        dest = str(numFrames + i) + ".jpg"
-        dest = dest.zfill(8) # pad with zeros
-        copyCommand = "cp " + source + " " + dest
-        os.system(copyCommand)
-
-def createGif(filename, delay=gif_delay):
-    print('Creating Gif')
-    graphicsmagickCommand = "gm convert -delay " + str(delay) + " " + "*.jpg " + filename + ".gif"
-    os.system(graphicsmagickCommand)
-    os.system("rm ./*.jpg") # cleanup source images
 
 try:
     while True:
@@ -80,7 +36,7 @@ try:
             ### PROCESSING GIF ###
             print('Processing')
             flashStatusLight()
-            if rebound == True: # make copy of images in reverse order
+            if(REBOUND): # make copy of images in reverse order
                 copyFramesForRebound()
             randomstring = random_generator()
             filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
