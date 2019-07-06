@@ -237,9 +237,9 @@ Resources:
             Filter:
               S3Key:
                 Rules:
-                  -
+                  - 
                     Name: suffix
-                    Value: '.jpg'
+                    Value: '.txt'
             Function: !GetAtt
               - CreateGifLambda
               - Arn
