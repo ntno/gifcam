@@ -12,7 +12,7 @@ URL_TIMEOUT = os.getenv('URL_TIMEOUT')
 S3_CLIENT = boto3.client('s3')
 
 def generateFileName():
-    return '{}.gif'.format(str(uuid.uuid1()))
+    return '{}'.format(str(uuid.uuid1()))
 
 def create_presigned_post(bucket_name=BUCKET_NAME, object_name=generateFileName(),
                           fields=None, conditions=None, expiration=3600):
@@ -48,18 +48,21 @@ def create_presigned_post(bucket_name=BUCKET_NAME, object_name=generateFileName(
     # The response contains the presigned URL and required fields
     return response
 
-def testPresignedUrl():
-    filename = generateFileName()
-    response = create_presigned_post(object_name=filename)
+def postToPresignedUrl(url, fields, pathToFile):
+    with open(pathToFile, 'rb') as f:
+        s3Key = '{}'.format(fields['key'])
+        files = {'file': (s3Key, f)}
+        http_response = requests.post(url, data=fields, files=files)
+    return http_response
+
+def testPresignedUrl(bucket_name, object_name, pathToFile):
+    response = create_presigned_post(bucket_name, object_name)
     if response is None:
         print("could not generate url")
     else:
         print("url", response['url'])
         print("fields", response['fields'])
-        with open('test.txt', 'rb') as f:
-            files = {'file': (filename, f)}
-            http_response = requests.post(response['url'], data=response['fields'], files=files)
-        # If successful, returns HTTP status code 204
+        http_response = postToPresignedUrl(response['url'], response['fields'], pathToFile)
         print(f'File upload HTTP status code: {http_response.status_code}')
 
 
@@ -67,7 +70,7 @@ def lambda_handler(event, context):
     filename = generateFileName()
     presignedUrl = 'yolo'
 
-    testPresignedUrl()
+    # testPresignedUrl()
     # str(create_presigned_url(generateFileName))
     # print(presignedUrl)
     # testUrl(presignedUrl)
