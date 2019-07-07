@@ -40,6 +40,12 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [presigned example which uses conditions](https://devcenter.heroku.com/articles/s3-upload-python)
 * [aws signature version](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html)
 * [region signature support](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
+* [signed url with custom policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-custom-policy.html#private-content-custom-policy-statement-example-all-objects)
+* [article on presigned - check out the 'starts with' param](https://medium.com/@aidan.hallett/securing-aws-s3-uploads-using-presigned-urls-aa821c13ae8d)
+* !![DOCS ON CUSTOM POLICY](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-HTTPPOSTConstructPolicy.html)
+* !![python example of generating a signature](https://stackoverflow.com/questions/39688422/correct-s3-policy-for-pre-signed-urls)
+* read later [gist](https://gist.github.com/SeanHayes/6e7c6094f6a8265e8b56)
+
 
 https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
 
