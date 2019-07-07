@@ -2,6 +2,7 @@
 *.jpg
 *.zip
 __pycache__
+ignore
 **/package
 **/gm-layer
 **/update-stack.sh
