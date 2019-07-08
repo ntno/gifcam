@@ -45,7 +45,7 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * !![DOCS ON CUSTOM POLICY](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-HTTPPOSTConstructPolicy.html)
 * !![python example of generating a signature](https://stackoverflow.com/questions/39688422/correct-s3-policy-for-pre-signed-urls)
 * read later [gist](https://gist.github.com/SeanHayes/6e7c6094f6a8265e8b56)
-
+* [connect to aws iot over http](https://docs.aws.amazon.com/iot/latest/developerguide/http.html)
 
 https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
 

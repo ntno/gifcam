@@ -1,0 +1,1 @@
+curl --tlsv1.2 --cacert PATH/TO/ROOT-CA.pem --cert PATH/TO/CERT.pem --key PATH/TO/PRIVATE-KEY.pem -X POST -d "{ \"message\": \"Hello, world\",\"num\":3 }" "https://REPLACEME.iot.us-east-2.amazonaws.com:8443/topics/my-test-topic"
