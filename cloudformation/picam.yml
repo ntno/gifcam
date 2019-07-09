@@ -4,6 +4,10 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
+  PicamRoleName:
+    Type: String
+    Description: prefix for the IAM role pi will use to upload files
+    Default: picam-pi-ex
   TwitterLambdaName:
     Type: String
     Description: prefix for the Lambda function which will tweet gifs
@@ -62,6 +66,7 @@ Resources:
               - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
       Roles: 
         - !Ref GenerateUrlLambdaExecutionRole
+        - !Ref PicamExecutionRole
   ReadGifsFolderPolicy:
     Type: AWS::IAM::Policy
     Properties: 
@@ -274,6 +279,18 @@ Resources:
             Condition:
               'Null':
                 's3:x-amz-server-side-encryption': True
+  PicamExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service : 'iot.amazonaws.com'
+            Action:
+              - sts:AssumeRole
+      RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
   TwitterLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
