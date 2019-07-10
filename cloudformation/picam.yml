@@ -4,18 +4,14 @@ Parameters:
   PicamBucketName:
     Type: String
     Description: name for the bucket
-  PicamRoleName:
-    Type: String
-    Description: prefix for the IAM role pi will use to upload files
-    Default: picam-pi-ex
   TwitterLambdaName:
     Type: String
     Description: prefix for the Lambda function which will tweet gifs
     Default: picam-tweet-gifs
-  # GenerateUrlLambdaName:
-  #   Type: String
-  #   Description: prefix for the Lambda function which will generate a presigned URL for the pi
-  #   Default: picam-generate-s3-url
+  GenerateUrlLambdaName:
+    Type: String
+    Description: prefix for the Lambda function which will generate a presigned URL for the pi
+    Default: picam-generate-s3-url
   CreateGifLambdaName:
     Type: String
     Description: prefix for the Lambda function which will create gif from raw jpgs
@@ -65,8 +61,7 @@ Resources:
             Resource: 
               - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
       Roles: 
-        # - !Ref GenerateUrlLambdaExecutionRole
-        - !Ref PicamExecutionRole
+        - !Ref GenerateUrlLambdaExecutionRole
   ReadGifsFolderPolicy:
     Type: AWS::IAM::Policy
     Properties: 
@@ -75,7 +70,6 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Action: 
-              # - 's3:ListObjects'
               - 's3:ListBucket'
             Effect: Allow
             Resource: 
@@ -144,26 +138,26 @@ Resources:
         - Arn
       Runtime: python3.6
       Timeout: 60
-  # GenerateUrlLambda:
-  #   Type: AWS::Lambda::Function
-  #   Properties: 
-  #     Code: 
-  #       S3Bucket: !Ref CodeBucketName
-  #       S3Key: lambda/picam/generateUrl.zip
-  #     Description: generates a presigned url so that the pi can upload jpgs without access keys
-  #     Environment: 
-  #       Variables:
-  #         #NOTE - you must store the tokens in a systems manager parameter store beforehand
-  #         #store must be in the same region as the cloud formation stack
-  #         URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
-  #         BUCKET_NAME: !Ref PicamBucket
-  #         INPUT_PREFIX: !Ref RawJpgsObjectKey
-  #     FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
-  #     Handler: generateUrl.lambda_handler
-  #     Role: !GetAtt 
-  #       - GenerateUrlLambdaExecutionRole
-  #       - Arn
-  #     Runtime: python3.6
+  GenerateUrlLambda:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        S3Bucket: !Ref CodeBucketName
+        S3Key: lambda/picam/generateUrl.zip
+      Description: generates a presigned url so that the pi can upload jpgs without access keys
+      Environment: 
+        Variables:
+          #NOTE - you must store the tokens in a systems manager parameter store beforehand
+          #store must be in the same region as the cloud formation stack
+          URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
+          BUCKET_NAME: !Ref PicamBucket
+          INPUT_PREFIX: !Ref RawJpgsObjectKey
+      FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
+      Handler: generateUrl.lambda_handler
+      Role: !GetAtt 
+        - GenerateUrlLambdaExecutionRole
+        - Arn
+      Runtime: python3.6
   TwitterLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -279,18 +273,6 @@ Resources:
             Condition:
               'Null':
                 's3:x-amz-server-side-encryption': True
-  PicamExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service : 'iot.amazonaws.com'
-            Action:
-              - sts:AssumeRole
-      RoleName: !Sub '${PicamRoleName}-${AWS::Region}'
   TwitterLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -302,17 +284,17 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       RoleName: !Sub '${TwitterLambdaName}-EX-${AWS::Region}'
-  # GenerateUrlLambdaExecutionRole:
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     AssumeRolePolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service: lambda.amazonaws.com
-  #           Action: 'sts:AssumeRole'
-  #     RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
+  GenerateUrlLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
   CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
