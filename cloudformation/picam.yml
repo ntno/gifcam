@@ -70,7 +70,6 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Action: 
-              # - 's3:ListObjects'
               - 's3:ListBucket'
             Effect: Allow
             Resource: 
@@ -117,7 +116,7 @@ Resources:
       Roles: 
         - !Ref CreateGifLambdaExecutionRole
         - !Ref TwitterLambdaExecutionRole
-        - !Ref GenerateUrlLambdaExecutionRole
+        # - !Ref GenerateUrlLambdaExecutionRole
   CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 

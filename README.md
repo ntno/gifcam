@@ -35,6 +35,24 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [led flashing without sleep](https://raspberrypi.stackexchange.com/questions/28984/how-to-blink-leds-on-off-continually-while-continuing-execution-of-a-script)
 * [stack overflow on adding gm to lambda](https://stackoverflow.com/questions/44729088/how-can-i-install-graphicsmagick-or-imagemagick-on-aws-lambda)
 * [gm lambda layer by rpidanny](https://github.com/rpidanny/gm-lambda-layer)
+* [presigned post example (not working)](https://docs.aws.amazon.com/code-samples/latest/catalog/python-s3-generate_presigned_post.py.html)
+* [boto3 for presigned](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.generate_presigned_url)
+* [presigned example which uses conditions](https://devcenter.heroku.com/articles/s3-upload-python)
+* [aws signature version](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html)
+* [region signature support](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region)
+* [signed url with custom policy](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-custom-policy.html#private-content-custom-policy-statement-example-all-objects)
+* [article on presigned - check out the 'starts with' param](https://medium.com/@aidan.hallett/securing-aws-s3-uploads-using-presigned-urls-aa821c13ae8d)
+* !![DOCS ON CUSTOM POLICY](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-HTTPPOSTConstructPolicy.html)
+* !![python example of generating a signature](https://stackoverflow.com/questions/39688422/correct-s3-policy-for-pre-signed-urls)
+* read later [gist](https://gist.github.com/SeanHayes/6e7c6094f6a8265e8b56)
+* [connect to aws iot over http](https://docs.aws.amazon.com/iot/latest/developerguide/http.html)
+* [tutorial on setting up temp security tokens with iot](https://aws.amazon.com/blogs/security/how-to-eliminate-the-need-for-hardcoded-aws-credentials-in-devices-by-using-the-aws-iot-credentials-provider/)
+* [iot thing policy variables](https://docs.aws.amazon.com/iot/latest/developerguide/thing-policy-variables.html)
+* [generating certificates](http://pages.cs.wisc.edu/~zmiller/ca-howto/)
+* [just in time device registration](https://aws.amazon.com/blogs/iot/just-in-time-registration-of-device-certificates-on-aws-iot/)
+* [bootstrap device](https://aws.amazon.com/blogs/iot/provisioning-with-a-bootstrap-certificate-in-aws-iot-core/?nc1=b_rp)
+
+https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
 
 
 ## Extra Installation Steps for AWS integration
