@@ -46,6 +46,11 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * !![python example of generating a signature](https://stackoverflow.com/questions/39688422/correct-s3-policy-for-pre-signed-urls)
 * read later [gist](https://gist.github.com/SeanHayes/6e7c6094f6a8265e8b56)
 * [connect to aws iot over http](https://docs.aws.amazon.com/iot/latest/developerguide/http.html)
+* [tutorial on setting up temp security tokens with iot](https://aws.amazon.com/blogs/security/how-to-eliminate-the-need-for-hardcoded-aws-credentials-in-devices-by-using-the-aws-iot-credentials-provider/)
+* [iot thing policy variables](https://docs.aws.amazon.com/iot/latest/developerguide/thing-policy-variables.html)
+* [generating certificates](http://pages.cs.wisc.edu/~zmiller/ca-howto/)
+* [just in time device registration](https://aws.amazon.com/blogs/iot/just-in-time-registration-of-device-certificates-on-aws-iot/)
+* [bootstrap device](https://aws.amazon.com/blogs/iot/provisioning-with-a-bootstrap-certificate-in-aws-iot-core/?nc1=b_rp)
 
 https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
 
