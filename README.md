@@ -17,7 +17,6 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 
 
 ## TODOs
-* add versioning to bucket
 * figure out how to request presigned url and get back the response
     * publish to 'req-url' topic -> iot rule invokes generate url lambda
     * generate url lambda publishes to 'resp-url' topic 
