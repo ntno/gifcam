@@ -17,6 +17,10 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 
 
 ## TODOs
+* add versioning to bucket
+* figure out how to request presigned url
+* iterate through jpgs and upload using presigned url to the same key
+* update gif lambda to list versions then download all versions to temp
 * set up authentication with AWS IoT
 * refactor scripts so i can take out default params
 * add resource tags 
