@@ -248,6 +248,8 @@ Resources:
             Function: !GetAtt
               - CreateGifLambda
               - Arn
+      VersioningConfiguration: 
+        Status: Enabled
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

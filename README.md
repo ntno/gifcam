@@ -18,10 +18,15 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 
 ## TODOs
 * add versioning to bucket
-* figure out how to request presigned url
+* figure out how to request presigned url and get back the response
+    * publish to 'req-url' topic -> iot rule invokes generate url lambda
+    * generate url lambda publishes to 'resp-url' topic 
+    * picam subscribed to 'resp-url' topic
 * iterate through jpgs and upload using presigned url to the same key
+* (optional) delete jpg source
+* delete jpg marker in s3
+* update trigger to trigger on delete
 * update gif lambda to list versions then download all versions to temp
-* set up authentication with AWS IoT
 * refactor scripts so i can take out default params
 * add resource tags 
 * remove files from pi after successful upload to AWS
