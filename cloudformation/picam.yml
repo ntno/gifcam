@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: creates bucket for gifs, IAM roles for Lambdas, and Lambda functions
 Parameters:
+  LambdaLogLevel:
+    Type: String
+    Description: logging level for lambda functions
+    Default: 'DEBUG'
   PicamBucketName:
     Type: String
     Description: name for the bucket
@@ -157,6 +161,7 @@ Resources:
           BUCKET_NAME: !Ref PicamBucket
           INPUT_PREFIX: !Ref RawJpgsObjectKey
           URL_RESPONSE_TOPIC: !Ref PresignedUrlTopic
+          LOG_LEVEL: !Ref LambdaLogLevel
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 

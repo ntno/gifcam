@@ -4,11 +4,14 @@ from botocore.exceptions import ClientError
 
 BUCKET_NAME = os.getenv('BUCKET_NAME')
 PUT_PREFIX = os.getenv('PUT_PREFIX')
+URL_RESPONSE_TOPIC = os.getenv('URL_RESPONSE_TOPIC')
+LOG_LEVEL = os.getenv('LOG_LEVEL')
 # URL_TIMEOUT = os.getenv('URL_TIMEOUT')
 
 S3_CLIENT = boto3.client('s3')
 IOT_DATA_CLIENT = boto3.client('iot-data')
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(LOG_LEVEL)
 
 def generateRandomFileName():
     return '{}{}'.format(str(uuid.uuid1()), '.jpg')
@@ -62,7 +65,7 @@ def lambda_handler(event, context):
         presignedUrlResponse = getPresignedPostUrl()
 
     LOGGER.info(presignedUrlResponse)
-    IOT_DATA_CLIENT.publish(topic='presigned-url', qos=0, payload=json.dumps(presignedUrlResponse))
+    IOT_DATA_CLIENT.publish(topic=URL_RESPONSE_TOPIC, qos=0, payload=json.dumps(presignedUrlResponse))
 
     return {'status':200, 'event':event, 'presigned' : presignedUrlResponse}
 
