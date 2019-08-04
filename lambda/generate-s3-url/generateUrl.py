@@ -7,6 +7,7 @@ PUT_PREFIX = os.getenv('PUT_PREFIX')
 # URL_TIMEOUT = os.getenv('URL_TIMEOUT')
 
 S3_CLIENT = boto3.client('s3')
+IOT_DATA_CLIENT = boto3.client('iot-data')
 LOGGER = logging.getLogger(__name__)
 
 def generateRandomFileName():
@@ -52,10 +53,18 @@ def postToPresignedUrl(urlResponse, pathToFile):
     return http_response
 
 def lambda_handler(event, context):
-    LOGGER.warning("EVENT")
-    LOGGER.warning(event)
+    LOGGER.info(event)
     
-    return {'status':200, 'event':event}
+    presignedUrlResponse = None
+    if(event.get('fileName') != None):
+        presignedUrlResponse = getPresignedPostUrl(fileName=event.get('fileName'))
+    else:
+        presignedUrlResponse = getPresignedPostUrl()
+
+    LOGGER.info(presignedUrlResponse)
+    IOT_DATA_CLIENT.publish(topic='presigned-url', qos=0, payload=json.dumps(presignedUrlResponse))
+
+    return {'status':200, 'event':event, 'presigned' : presignedUrlResponse}
 
 if __name__ == "__main__":
     presigned = getPresignedPostUrl('kermit.jpg')

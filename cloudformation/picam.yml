@@ -24,6 +24,10 @@ Parameters:
     Type: String
     Description: key where raw jpgs will be stored
     Default: 'gifs'
+  PresignedUrlTopic:
+    Type: String
+    Description: IoT topic where lambda will publish the presigned URL
+    Default: 'presigned-url'
   #NOTE - the code bucket is not created via the picam.yml template, you must create it beforehand and upload the code
   CodeBucketName:
     Type: String
@@ -152,6 +156,7 @@ Resources:
           URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
           BUCKET_NAME: !Ref PicamBucket
           INPUT_PREFIX: !Ref RawJpgsObjectKey
+          URL_RESPONSE_TOPIC: !Ref PresignedUrlTopic
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 
@@ -306,7 +311,7 @@ Resources:
                 Action: 'iot:Publish'
                 Effect: Allow
                 Resource: 
-                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/presigned-url'  
+                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${PresignedUrlTopic}'  
   CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
