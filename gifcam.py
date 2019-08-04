@@ -20,16 +20,17 @@ if(UPLOAD):
     addSubscription('test-topic', printMessageCallback, awsClient)
     print("Done initializing AWS MQTT Client...")
 
-# Indicate ready status
-turnOnStatusLight()
-
-print("System Ready")
 
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
 def uploadToS3():
     pass
+
+# Indicate ready status
+turnOnStatusLight()
+
+print("System Ready")
 
 try:
     while True:
@@ -48,7 +49,7 @@ try:
                 copyFramesForRebound()
             randomstring = random_generator()
             filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
-            createGif(filename)
+            # createGif(filename)
             turnOffStatusLight()
 
             ### UPLOAD TO AWS ###

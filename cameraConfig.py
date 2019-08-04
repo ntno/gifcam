@@ -29,6 +29,7 @@ def copyFramesForRebound(numFrames=num_frame):
         dest = dest.zfill(8) # pad with zeros
 
         copyCommand = 'cp {} {}'.format(source, dest)
+        print("\t" + copyCommand)
         os.system(copyCommand)
 
 def createGif(filename, delay=gif_delay, removeFrames=True):
