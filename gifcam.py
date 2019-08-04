@@ -3,7 +3,7 @@ from time import sleep
 from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
-from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC
+from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC, IOT_SUBSCRIBE_TOPIC
 
 ########################
 #
@@ -18,7 +18,7 @@ if(UPLOAD):
     print("Intializing AWS MQTT Client")
     awsClient = createAwsIotMqttClient()
     initializeClient(awsClient)
-    addSubscription('test-topic', printMessageCallback, awsClient)
+    addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsClient)
     print("Done initializing AWS MQTT Client")
 
 def requestPresignedUrl(client, fileName, info=None):
