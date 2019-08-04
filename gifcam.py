@@ -4,6 +4,7 @@ from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
 from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC, IOT_SUBSCRIBE_TOPIC
+from lambda.generate-s3-url.generateUrl import postToPresignedUrl
 
 ########################
 #
@@ -13,13 +14,9 @@ from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription
 REBOUND = False      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
 
-
-if(UPLOAD):
-    print("Intializing AWS MQTT Client")
-    awsClient = createAwsIotMqttClient()
-    initializeClient(awsClient)
-    addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsClient)
-    print("Done initializing AWS MQTT Client")
+def uploadFramesToS3(presignedUrlResponse):
+    info = presignedUrlResponse['info']
+    
 
 def requestPresignedUrl(client, fileName, info=None):
     message = {}
@@ -34,52 +31,63 @@ def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
 def uploadToS3():
     pass
 
-# Indicate ready status
-turnOnStatusLight()
 
-print("System Ready")
 
-try:
-    while True:
-        if isButtonPressed():
-            ### TAKING PICTURES ###
-            print('Capture Started')
-            turnOffStatusLight()
-            flashButtonLight()
-            captureFrames()
-            turnOffButtonLight()
+if __name__ == "__main__":
+    if(UPLOAD):
+        print("Intializing AWS MQTT Client")
+        awsClient = createAwsIotMqttClient()
+        initializeClient(awsClient)
+        addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsClient)
+        print("Done initializing AWS MQTT Client")
 
-            ### PROCESSING GIF ###
-            print('Processing')
-            flashStatusLight()
-            if(REBOUND): # make copy of images in reverse order
-                copyFramesForRebound()
 
-            randomstring = random_generator()
-            folderName = '/home/pi/gifcam/jpgs/{}'.format(randomstring)  
-            moveFramesToFolder(Path(folderName))
-            if(UPLOAD):
-                info = {}
-                uploadFileName = "{}.jpg".format(randomstring)
-                info['uploadFileName'] = uploadFileName
-                info['frames'] = folderName
-                requestPresignedUrl(awsClient, uploadFileName, info)
+    # Indicate ready status
+    turnOnStatusLight()
 
-            turnOffStatusLight()
+    print("System Ready")
 
-            ### UPLOAD TO AWS ###
-            if(UPLOAD):
+    try:
+        while True:
+            if isButtonPressed():
+                ### TAKING PICTURES ###
+                print('Capture Started')
+                turnOffStatusLight()
                 flashButtonLight()
-                uploadToS3()
+                captureFrames()
                 turnOffButtonLight()
 
-            print('Done')
-            print('System Ready')
+                ### PROCESSING GIF ###
+                print('Processing')
+                flashStatusLight()
+                if(REBOUND): # make copy of images in reverse order
+                    copyFramesForRebound()
 
-        else : # Button NOT pressed
-            ### READY TO MAKE GIF ###
-            turnOnStatusLight()
-            sleep(0.05)
+                randomstring = random_generator()
+                folderName = '/home/pi/gifcam/jpgs/{}'.format(randomstring)  
+                moveFramesToFolder(Path(folderName))
+                if(UPLOAD):
+                    info = {}
+                    uploadFileName = "{}.jpg".format(randomstring)
+                    info['uploadFileName'] = uploadFileName
+                    info['frames'] = folderName
+                    requestPresignedUrl(awsClient, uploadFileName, info)
 
-except:
-    cleanup()
+                turnOffStatusLight()
+
+                ### UPLOAD TO AWS ###
+                if(UPLOAD):
+                    flashButtonLight()
+                    uploadToS3()
+                    turnOffButtonLight()
+
+                print('Done')
+                print('System Ready')
+
+            else : # Button NOT pressed
+                ### READY TO MAKE GIF ###
+                turnOnStatusLight()
+                sleep(0.05)
+
+    except:
+        cleanup()
