@@ -1,7 +1,8 @@
 import os, random, string
 from time import sleep
+from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
-from cameraConfig import createGif, captureFrames, copyFramesForRebound
+from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
 from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback
 
 ########################
@@ -47,8 +48,11 @@ try:
             flashStatusLight()
             if(REBOUND): # make copy of images in reverse order
                 copyFramesForRebound()
+
             randomstring = random_generator()
-            filename = '/home/pi/gifcam/gifs/' + randomstring + '-0'
+            folderName = '/home/pi/gifcam/jpgs/{}'.format(randomstring)  
+            moveFramesToFolder(Path(folderName))
+
             # createGif(filename)
             turnOffStatusLight()
 
