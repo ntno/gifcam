@@ -1,9 +1,9 @@
-import os, random, string
+import os, random, string, json
 from time import sleep
 from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
-from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback
+from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC
 
 ########################
 #
@@ -15,12 +15,18 @@ UPLOAD = True       # uploads the GIF to S3 after capturing
 
 
 if(UPLOAD):
-    print("Intializing AWS MQTT Client...")
+    print("Intializing AWS MQTT Client")
     awsClient = createAwsIotMqttClient()
     initializeClient(awsClient)
     addSubscription('test-topic', printMessageCallback, awsClient)
-    print("Done initializing AWS MQTT Client...")
+    print("Done initializing AWS MQTT Client")
 
+def requestPresignedUrl(client, fileName, info=None):
+    message = {}
+    message['fileName'] = fileName
+    message['info'] = info
+    messageJson = json.dumps(message)
+    client.publish(IOT_PUBLISH_TOPIC, messageJson, 1)
 
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
@@ -52,8 +58,13 @@ try:
             randomstring = random_generator()
             folderName = '/home/pi/gifcam/jpgs/{}'.format(randomstring)  
             moveFramesToFolder(Path(folderName))
+            if(UPLOAD):
+                info = {}
+                uploadFileName = "{}.jpg".format(randomstring)
+                info['uploadFileName'] = uploadFileName
+                info['frames'] = folderName
+                requestPresignedUrl(awsClient, uploadFileName, info)
 
-            # createGif(filename)
             turnOffStatusLight()
 
             ### UPLOAD TO AWS ###
