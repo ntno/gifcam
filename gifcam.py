@@ -15,8 +15,20 @@ REBOUND = False      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
 
 def uploadFramesToS3(presignedUrlResponse):
-    info = presignedUrlResponse['info']
+    pathToFrames = presignedUrlResponse['info']['frames']
+    lsCommand = "ls -tr {} | awk '{print $0}'".format(pathToFrames)
+    lsResult = subprocess.check_output(lsCommand, shell=True)
+    lsResult = str(lsResult, "utf-8").rstrip().split('\n')
     
+    numFrames = len(lsResult) + 1
+    frames = []
+    for i in range(0, numFrames):
+        pathToFrame = os.path.join(pathToFrames, lsResult[i])
+        frames.append(Path(pathToFrame))
+
+    for p in frames:
+        response = postToPresignedUrl(presignedUrlResponse, p)
+        print(p, response.status_code)
 
 def requestPresignedUrl(client, fileName, info=None):
     message = {}
@@ -28,9 +40,20 @@ def requestPresignedUrl(client, fileName, info=None):
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
-def uploadToS3():
-    pass
-
+def presignedUrlResponseCallBack(client, userdata, message):
+    print("\n\n--------------")
+    print("Received a new message: ")
+    print("ts:")
+    print(message.timestamp)
+    print("payload:")
+    print(message.payload)
+    print("topic:")
+    print(message.topic)
+    bytesPayload = message.payload
+    payloadAsStr = str(bytesPayload, "utf-8")
+    payload = json.loads(payloadAsStr)
+    uploadFramesToS3(payload)
+    print("--------------\n\n")
 
 
 if __name__ == "__main__":
