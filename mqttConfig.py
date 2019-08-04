@@ -7,6 +7,10 @@ AllowedActions = ['both', 'publish', 'subscribe']
 # Custom MQTT message callback
 def customCallback(client, userdata, message):
     print("Received a new message: ")
+    print("client: ")
+    print(client)
+    print("userdata:")
+    print(userdata)
     print(message.payload)
     print("from topic: ")
     print(message.topic)
@@ -32,25 +36,34 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 
-# Init AWSIoTMQTTClient
-myAWSIoTMQTTClient = None
-myAWSIoTMQTTClient = AWSIoTMQTTClient(clientId)
-myAWSIoTMQTTClient.configureEndpoint(host, port)
-myAWSIoTMQTTClient.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
+def createAwsIotMqttClient():
+    # Init AWSIoTMQTTClient
+    client = None
+    client = AWSIoTMQTTClient(clientId)
+    client.configureEndpoint(host, port)
+    client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
 
-# AWSIoTMQTTClient connection configuration
-myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
-myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
-myAWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
-myAWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
+    # AWSIoTMQTTClient connection configuration
+    client.configureAutoReconnectBackoffTime(1, 32, 20)
+    client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+    client.configureDrainingFrequency(2)  # Draining: 2 Hz
+    client.configureConnectDisconnectTimeout(10)  # 10 sec
+    client.configureMQTTOperationTimeout(5)  # 5 sec
+    return client
 
-# Connect and subscribe to AWS IoT
-myAWSIoTMQTTClient.connect()
-myAWSIoTMQTTClient.subscribe(subscribeTopic, 1, customCallback)
-time.sleep(2)
+def initializeClient(client):
+    client.connect()
+
+def addSubscription(topic, callback, client, qos=1):
+    client.subscribe(topic, qos, callback)
+    time.sleep(2)
+
 
 if __name__ == "__main__":
+    awsIoTMQTTClient = createAwsIotMqttClient()
+    initializeClient(awsIoTMQTTClient)
+    addSubscription(subscribeTopic, customCallback, awsIoTMQTTClient)
+
     # Publish to the same topic in a loop forever
     loopCount = 0
     while True:
@@ -58,7 +71,7 @@ if __name__ == "__main__":
         message['message'] = "hello from {}".format(clientId)
         message['sequence'] = loopCount
         messageJson = json.dumps(message)
-        myAWSIoTMQTTClient.publish(publishTopic, messageJson, 1)
+        awsIoTMQTTClient.publish(publishTopic, messageJson, 1)
         print('Published topic %s: %s\n' % (publishTopic, messageJson))
         loopCount += 1
         time.sleep(1)
