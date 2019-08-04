@@ -116,7 +116,7 @@ Resources:
       Roles: 
         - !Ref CreateGifLambdaExecutionRole
         - !Ref TwitterLambdaExecutionRole
-        # - !Ref GenerateUrlLambdaExecutionRole
+        - !Ref GenerateUrlLambdaExecutionRole
   CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 
