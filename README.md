@@ -31,7 +31,11 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * refactor scripts so i can take out default params
 * add resource tags 
 * remove files from pi after successful upload to AWS
-
+* restrict device IoT permissions 
+* document manual IoT steps
+ * IoT logging
+ * error handling 
+ 
 ## Future Enhancements 
 * handle no wifi connection (retry upload)
 
@@ -61,6 +65,8 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 * [generating certificates](http://pages.cs.wisc.edu/~zmiller/ca-howto/)
 * [just in time device registration](https://aws.amazon.com/blogs/iot/just-in-time-registration-of-device-certificates-on-aws-iot/)
 * [bootstrap device](https://aws.amazon.com/blogs/iot/provisioning-with-a-bootstrap-certificate-in-aws-iot-core/?nc1=b_rp)
+* [publish to MQTT topic from lambda](https://stackoverflow.com/questions/37810289/how-can-i-publish-to-a-mqtt-topic-in-a-amazon-aws-lambda-function)
+* [pub/sub IAM policies](https://docs.aws.amazon.com/iot/latest/developerguide/pub-sub-policy.html)
 
 https://www.calazan.com/generating-a-signed-url-for-an-amazon-s3-file-using-boto/
 
