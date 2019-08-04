@@ -34,6 +34,7 @@ def copyFramesForRebound(numFrames=num_frame):
 
 def moveFramesToFolder(path):
 	print("Moving frames to {}".format(path))
+	os.system("mkdir -p {}".format(path))
 	moveCommand = 'mv *.jpg {}'.format(path)
 	os.system(moveCommand)     
 
