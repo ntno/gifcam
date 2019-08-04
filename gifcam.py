@@ -2,6 +2,7 @@ import os, random, string
 from time import sleep
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound
+from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback
 
 ########################
 #
@@ -12,10 +13,17 @@ REBOUND = False      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
 
 
+if(UPLOAD):
+    print("Intializing AWS MQTT Client...")
+    awsClient = createAwsIotMqttClient()
+    initializeClient(awsClient)
+    addSubscription('test-topic', printMessageCallback, awsClient)
+    print("Done initializing AWS MQTT Client...")
+
 # Indicate ready status
 turnOnStatusLight()
 
-print('System Ready')
+print("System Ready")
 
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
