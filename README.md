@@ -98,6 +98,7 @@ add local bin to PATH (set in .bashrc)
 install additional libraries (`pip3 install --user x`)
 * awscli
 * boto3
+* requests
 * AWSIoTPythonSDK
 * RPi.GPIO
 * picamera

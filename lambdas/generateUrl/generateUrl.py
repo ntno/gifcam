@@ -5,11 +5,12 @@ from botocore.exceptions import ClientError
 BUCKET_NAME = os.getenv('BUCKET_NAME')
 INPUT_PREFIX = os.getenv('INPUT_PREFIX')
 URL_RESPONSE_TOPIC = os.getenv('URL_RESPONSE_TOPIC')
-LOG_LEVEL = os.getenv('LOG_LEVEL')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING')
 URL_TIMEOUT = int(os.getenv('URL_TIMEOUT'))
+AWS_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-2')
 
-S3_CLIENT = boto3.client('s3')
-IOT_DATA_CLIENT = boto3.client('iot-data')
+S3_CLIENT = boto3.client('s3', AWS_REGION)
+IOT_DATA_CLIENT = boto3.client('iot-data', AWS_REGION)
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(LOG_LEVEL)
 
@@ -73,7 +74,7 @@ def lambda_handler(event, context):
     return {'status':200, 'event':event, 'presigned' : presignedUrlResponse}
 
 if __name__ == "__main__":
-    presigned = getPresignedPostUrl('kermit.jpg')
+    presigned = getPresignedPostUrl(fileName='kermit.jpg')
     print(presigned)
 
     numFrames = 21
@@ -83,4 +84,4 @@ if __name__ == "__main__":
         frames.append(Path(pathToFrame))
     for p in frames:
         response = postToPresignedUrl(presigned, p)
-        print(response.status_code)
+        print(p, response.status_code)
