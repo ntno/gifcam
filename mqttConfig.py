@@ -2,60 +2,33 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import logging, time, json, os
 
-AllowedActions = ['both', 'publish', 'subscribe']
-
-# Custom MQTT message callback
-def customCallback(client, userdata, message):
-    print("Received a new message: ")
-    print("client: ")
-    print(client)
-    print("userdata:")
-    print(userdata)
-    print("message:")
-    print("dup")
-    print(message.dup)
-    print("mid")
-    print(message.mid)
-    print("qos")
-    print(message.qos)
-    print("retain")
-    print(message.retain)
-    print("state")
-    print(message.state)
-    print("ts")
-    print(message.timestamp)
-    print("payload:")
-    print(message.payload)
-    print("topic: ")
-    print(message.topic)
-    print("--------------\n\n")
 
 
-host = os.getenv("IOT_HOST")
-rootCAPath = os.getenv("ROOTCAPATH")
-certificatePath = os.getenv("CERTIFICATEPATH")
-privateKeyPath = os.getenv("PRIVATEKEYPATH")
-port = int(os.getenv("IOT_PORT"))
-clientId = os.getenv("IOT_CLIENT_ID")
-publishTopic = os.getenv("IOT_PUBLISH_TOPIC")
-subscribeTopic = os.getenv("IOT_SUBSCRIBE_TOPIC")
-# logLevel = os.getenv("LOG_LEVEL")
+IOT_HOST = os.getenv("IOT_HOST")
+ROOTCAPATH = os.getenv("ROOTCAPATH")
+CERTIFICATEPATH = os.getenv("CERTIFICATEPATH")
+PRIVATEKEYPATH = os.getenv("PRIVATEKEYPATH")
+IOT_PORT = int(os.getenv("IOT_PORT"))
+IOT_CLIENT_ID = os.getenv("IOT_CLIENT_ID")
+IOT_PUBLISH_TOPIC = os.getenv("IOT_PUBLISH_TOPIC")
+IOT_SUBSCRIBE_TOPIC = os.getenv("IOT_SUBSCRIBE_TOPIC")
 
-
-# Configure logging
-logger = logging.getLogger("AWSIoTPythonSDK.core")
-logger.setLevel(logging.DEBUG)
-streamHandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-streamHandler.setFormatter(formatter)
-logger.addHandler(streamHandler)
+DEBUG=False
+if(DEBUG):
+    # Configure logging
+    logger = logging.getLogger("AWSIoTPythonSDK.core")
+    logger.setLevel(logging.DEBUG)
+    streamHandler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    streamHandler.setFormatter(formatter)
+    logger.addHandler(streamHandler)
 
 def createAwsIotMqttClient():
     # Init AWSIoTMQTTClient
     client = None
-    client = AWSIoTMQTTClient(clientId)
-    client.configureEndpoint(host, port)
-    client.configureCredentials(rootCAPath, privateKeyPath, certificatePath)
+    client = AWSIoTMQTTClient(IOT_CLIENT_ID)
+    client.configureEndpoint(IOT_HOST, IOT_PORT)
+    client.configureCredentials(ROOTCAPATH, PRIVATEKEYPATH, CERTIFICATEPATH)
 
     # AWSIoTMQTTClient connection configuration
     client.configureAutoReconnectBackoffTime(1, 32, 20)
@@ -72,20 +45,31 @@ def addSubscription(topic, callback, client, qos=1):
     client.subscribe(topic, qos, callback)
     time.sleep(2)
 
+# Custom MQTT message callback
+def printMessageCallback(client, userdata, message):
+    print("Received a new message: ")
+    print("ts:")
+    print(message.timestamp)
+    print("payload:")
+    print(message.payload)
+    print("topic:")
+    print(message.topic)
+    print("--------------\n\n")
+
 
 if __name__ == "__main__":
     awsIoTMQTTClient = createAwsIotMqttClient()
     initializeClient(awsIoTMQTTClient)
-    addSubscription(subscribeTopic, customCallback, awsIoTMQTTClient)
+    addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsIoTMQTTClient)
 
     # Publish to the same topic in a loop forever
     loopCount = 0
     while True:
         message = {}
-        message['message'] = "hello from {}".format(clientId)
+        message['message'] = "hello from {}".format(IOT_CLIENT_ID)
         message['sequence'] = loopCount
         messageJson = json.dumps(message)
-        awsIoTMQTTClient.publish(publishTopic, messageJson, 1)
-        print('Published topic %s: %s\n' % (publishTopic, messageJson))
+        awsIoTMQTTClient.publish(IOT_PUBLISH_TOPIC, messageJson, 1)
+        print('Published topic %s: %s\n' % (IOT_PUBLISH_TOPIC, messageJson))
         loopCount += 1
         time.sleep(1)
