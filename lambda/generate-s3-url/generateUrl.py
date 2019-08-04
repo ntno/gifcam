@@ -52,13 +52,10 @@ def postToPresignedUrl(urlResponse, pathToFile):
     return http_response
 
 def lambda_handler(event, context):
-    print("EVENT")
-    print(event)
-
-    print("CONTEXT")
-    print(context)
+    LOGGER.warning("EVENT")
+    LOGGER.warning(event)
     
-    return {'status':200, 'event':event, 'context':context}
+    return {'status':200, 'event':event}
 
 if __name__ == "__main__":
     presigned = getPresignedPostUrl('kermit.jpg')
