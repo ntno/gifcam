@@ -1,46 +1,83 @@
-import os
-import logging
-import boto3
-import uuid
+import os, logging, boto3, uuid, requests, copy, json
+from pathlib import Path
 from botocore.exceptions import ClientError
 
 BUCKET_NAME = os.getenv('BUCKET_NAME')
 PUT_PREFIX = os.getenv('PUT_PREFIX')
-URL_TIMEOUT = os.getenv('URL_TIMEOUT')
+URL_RESPONSE_TOPIC = os.getenv('URL_RESPONSE_TOPIC')
+LOG_LEVEL = os.getenv('LOG_LEVEL')
+# URL_TIMEOUT = os.getenv('URL_TIMEOUT')
 
 S3_CLIENT = boto3.client('s3')
+IOT_DATA_CLIENT = boto3.client('iot-data')
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(LOG_LEVEL)
 
-def generateFileName():
-    return '{}.gif'.format(str(uuid.uuid1()))
+def generateRandomFileName():
+    return '{}{}'.format(str(uuid.uuid1()), '.jpg')
 
-def create_presigned_url(bucket_name=BUCKET_NAME, object_name=generateFileName(), expiration=URL_TIMEOUT):
-    """Generate a presigned URL to share an S3 object
+def generateS3Prefix(fileName):
+    return '{}/{}'.format(PUT_PREFIX, fileName)
 
-    :param bucket_name: string
-    :param object_name: string
-    :param expiration: Time in seconds for the presigned URL to remain valid
-    :return: Presigned URL as string. If error, returns None.
-    """
+def generateFields():
+    return {'x-amz-server-side-encryption': "AES256"}
 
-    # Generate a presigned URL for the S3 object
+def generateConditions(expectedKey):
+    serverSideEncryption = {"x-amz-server-side-encryption":"AES256"}
+    prefix = ["starts-with", "$key", expectedKey]
+    return [prefix, serverSideEncryption]
+
+
+def generatePresignedPostUrl(objectKey, bucketName=BUCKET_NAME, expiration=3600):
+    # Generate a presigned S3 POST URL
+    conditions = generateConditions(objectKey)
     try:
-        response = S3_CLIENT.generate_presigned_url('get_object',
-                                                    Params={'Bucket': bucket_name,
-                                                            'Key': '{}{}'.format(PUT_PREFIX, object_name)},
-                                                    ExpiresIn=expiration)
+        response = S3_CLIENT.generate_presigned_post(bucketName,
+                                                     objectKey,
+                                                     Fields=generateFields(),
+                                                     Conditions=conditions,
+                                                     ExpiresIn=expiration)
     except ClientError as e:
-        logging.error(e)
+        LOGGER.error(e)
         return None
 
-    # The response contains the presigned URL
+    # The response contains the presigned URL and required fields
     return response
 
 
+def getPresignedPostUrl(fileName=generateRandomFileName(), bucketName=BUCKET_NAME):
+    s3Key = generateS3Prefix(fileName)
+    urlResponse = generatePresignedPostUrl(s3Key)
+    return urlResponse
 
-def lambda_handler(event, context):  
-    presignedUrl = str(create_presigned_url())
-    return {'status':200, 'url': presignedUrl}
+# #you can use the same URL twice to load two different files (but they get saved to the same key)
+def postToPresignedUrl(urlResponse, pathToFile):
+    http_response = requests.post(urlResponse['url'], data=urlResponse['fields'], files={'file': open(pathToFile, 'rb')})
+    return http_response
+
+def lambda_handler(event, context):
+    LOGGER.info(event)
+    
+    presignedUrlResponse = None
+    if(event.get('fileName') != None):
+        presignedUrlResponse = getPresignedPostUrl(fileName=event.get('fileName'))
+    else:
+        presignedUrlResponse = getPresignedPostUrl()
+
+    LOGGER.info(presignedUrlResponse)
+    IOT_DATA_CLIENT.publish(topic=URL_RESPONSE_TOPIC, qos=0, payload=json.dumps(presignedUrlResponse))
+
+    return {'status':200, 'event':event, 'presigned' : presignedUrlResponse}
 
 if __name__ == "__main__":
-    DEBUG=True
-    print(lambda_handler(None, None))
+    presigned = getPresignedPostUrl('kermit.jpg')
+    print(presigned)
+
+    numFrames = 21
+    frames = []
+    for i in range(0, numFrames):
+        pathToFrame = os.path.join('../../jpgs/frames/', str(i) + '.jpg')
+        frames.append(Path(pathToFrame))
+    for p in frames:
+        response = postToPresignedUrl(presigned, p)
+        print(response.status_code)

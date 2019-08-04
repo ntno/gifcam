@@ -2,9 +2,13 @@
 *.jpg
 *.zip
 __pycache__
+ignore
 **/package
+**/gm-layer
+**/update-iot*.sh
 **/update-stack.sh
 **/create-stack.sh
+**/delete-stack.sh
 **/update-code.sh
 *.code-workspace
 **/*.DS_Store

@@ -1,0 +1,17 @@
+{
+    "Version": "2012-10-17",
+    "Statement": {
+      "Effect": "Allow",
+      "Action": "iot:AssumeRoleWithCertificate",
+      "Resource": "arn:aws:iot:REGION:ACCOUNT_ID:rolealias/${iot:Connection.Thing.ThingName}-picam-role-alias",
+      "Condition": {
+        "StringEquals": {
+          "iot:Certificate.Subject.Title": "${iot:Connection.Thing.ThingName}"
+        },
+        "Bool": {
+          "iot:Connection.Thing.IsAttached": "true"
+        }
+      }
+    }
+  }
+  
