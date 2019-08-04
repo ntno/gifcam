@@ -7,3 +7,4 @@ __pycache__
 **/create-stack.sh
 **/update-code.sh
 *.code-workspace
+**/*.DS_Store
