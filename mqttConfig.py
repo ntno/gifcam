@@ -67,9 +67,9 @@ if __name__ == "__main__":
     while True:
         message = {}
         message['message'] = "hello from {}".format(IOT_CLIENT_ID)
-        message['sequence'] = loopCount
+        message['fileName'] = loopCount
         messageJson = json.dumps(message)
         awsIoTMQTTClient.publish(IOT_PUBLISH_TOPIC, messageJson, 1)
-        print('Published topic %s: %s\n' % (IOT_PUBLISH_TOPIC, messageJson))
+        print('>>> Published to topic %s: %s\n' % (IOT_PUBLISH_TOPIC, messageJson))
         loopCount += 1
         time.sleep(1)
