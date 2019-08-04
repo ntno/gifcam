@@ -4,7 +4,7 @@ from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
 from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC, IOT_SUBSCRIBE_TOPIC
-from lambda.generate-s3-url.generateUrl import postToPresignedUrl
+from lambdas.generateUrl.generateUrl import postToPresignedUrl
 
 ########################
 #
