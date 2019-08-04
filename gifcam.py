@@ -8,7 +8,7 @@ from cameraConfig import createGif, captureFrames, copyFramesForRebound
 # Behaviour Variables
 #
 ########################
-REBOUND = True      # Create a video that loops start <=> end
+REBOUND = False      # Create a video that loops start <=> end
 UPLOAD = True       # uploads the GIF to S3 after capturing
 
 

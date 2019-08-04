@@ -11,3 +11,4 @@ ignore
 **/delete-stack.sh
 **/update-code.sh
 *.code-workspace
+**/*.DS_Store
