@@ -6,7 +6,7 @@ BUCKET_NAME = os.getenv('BUCKET_NAME')
 INPUT_PREFIX = os.getenv('INPUT_PREFIX')
 URL_RESPONSE_TOPIC = os.getenv('URL_RESPONSE_TOPIC')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
-# URL_TIMEOUT = os.getenv('URL_TIMEOUT')
+URL_TIMEOUT = int(os.getenv('URL_TIMEOUT'))
 
 S3_CLIENT = boto3.client('s3')
 IOT_DATA_CLIENT = boto3.client('iot-data')
@@ -28,7 +28,7 @@ def generateConditions(expectedKey):
     return [prefix, serverSideEncryption]
 
 
-def generatePresignedPostUrl(objectKey, bucketName=BUCKET_NAME, expiration=3600):
+def generatePresignedPostUrl(objectKey, bucketName=BUCKET_NAME, expiration=URL_TIMEOUT):
     # Generate a presigned S3 POST URL
     conditions = generateConditions(objectKey)
     try:
