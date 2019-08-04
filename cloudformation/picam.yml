@@ -297,6 +297,16 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
+      Policies: 
+        - PolicyName: 'IotPublishPermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: PublishToPresignedUrlTopic
+                Action: 'iot:Publish'
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/presigned-url'  
   CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
