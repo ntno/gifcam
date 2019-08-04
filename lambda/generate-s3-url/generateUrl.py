@@ -3,7 +3,7 @@ from pathlib import Path
 from botocore.exceptions import ClientError
 
 BUCKET_NAME = os.getenv('BUCKET_NAME')
-PUT_PREFIX = os.getenv('PUT_PREFIX')
+INPUT_PREFIX = os.getenv('INPUT_PREFIX')
 URL_RESPONSE_TOPIC = os.getenv('URL_RESPONSE_TOPIC')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
 # URL_TIMEOUT = os.getenv('URL_TIMEOUT')
@@ -17,7 +17,7 @@ def generateRandomFileName():
     return '{}{}'.format(str(uuid.uuid1()), '.jpg')
 
 def generateS3Prefix(fileName):
-    return '{}/{}'.format(PUT_PREFIX, fileName)
+    return '{}/{}'.format(INPUT_PREFIX, fileName)
 
 def generateFields():
     return {'x-amz-server-side-encryption': "AES256"}
