@@ -17,7 +17,17 @@ see [hardware/](https://github.com/ntno/gifcam/tree/master/hardware)
 
 
 ## TODOs
-* set up authentication with AWS IoT
+* figure out why lambda function is not getting triggered by iot rule
+* figure out how to request presigned url and get back the response
+    * publish to 'req-url' topic -> iot rule invokes generate url lambda
+    * generate url lambda publishes to 'resp-url' topic 
+    * picam subscribed to 'resp-url' topic
+* iterate through jpgs and upload using presigned url to the same key
+* delete jpg marker in s3 (?)
+  * will this work with a presigned URL?
+  * or post to a different topic?
+* update trigger (on delete or on a certain topic?)
+* update gif lambda to list versions then download all versions to temp
 * refactor scripts so i can take out default params
 * add resource tags 
 * remove files from pi after successful upload to AWS

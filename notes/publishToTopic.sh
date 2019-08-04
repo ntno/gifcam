@@ -1,0 +1,1 @@
+aws iot-data publish --cli-input-json '{"topic":"request-url", "qos": 0, "payload": "{\"key\":\"val\"}"}'

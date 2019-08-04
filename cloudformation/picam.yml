@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: creates bucket for gifs, IAM roles for Lambdas, and Lambda functions
 Parameters:
+  LambdaLogLevel:
+    Type: String
+    Description: logging level for lambda functions
+    Default: 'DEBUG'
   PicamBucketName:
     Type: String
     Description: name for the bucket
@@ -24,6 +28,10 @@ Parameters:
     Type: String
     Description: key where raw jpgs will be stored
     Default: 'gifs'
+  PresignedUrlTopic:
+    Type: String
+    Description: IoT topic where lambda will publish the presigned URL
+    Default: 'presigned-url'
   #NOTE - the code bucket is not created via the picam.yml template, you must create it beforehand and upload the code
   CodeBucketName:
     Type: String
@@ -116,7 +124,7 @@ Resources:
       Roles: 
         - !Ref CreateGifLambdaExecutionRole
         - !Ref TwitterLambdaExecutionRole
-        # - !Ref GenerateUrlLambdaExecutionRole
+        - !Ref GenerateUrlLambdaExecutionRole
   CreateGifLambda:
     Type: AWS::Lambda::Function
     Properties: 
@@ -152,6 +160,8 @@ Resources:
           URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
           BUCKET_NAME: !Ref PicamBucket
           INPUT_PREFIX: !Ref RawJpgsObjectKey
+          URL_RESPONSE_TOPIC: !Ref PresignedUrlTopic
+          LOG_LEVEL: !Ref LambdaLogLevel
       FunctionName: !Sub '${GenerateUrlLambdaName}-${AWS::Region}'
       Handler: generateUrl.lambda_handler
       Role: !GetAtt 
@@ -248,6 +258,8 @@ Resources:
             Function: !GetAtt
               - CreateGifLambda
               - Arn
+      VersioningConfiguration: 
+        Status: Enabled
   PicamBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -295,6 +307,16 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       RoleName: !Sub '${GenerateUrlLambdaName}-EX-${AWS::Region}'
+      Policies: 
+        - PolicyName: 'IotPublishPermissions'
+          PolicyDocument: 
+            Version: 2012-10-17
+            Statement:
+              - Sid: PublishToPresignedUrlTopic
+                Action: 'iot:Publish'
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${PresignedUrlTopic}'  
   CreateGifLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
