@@ -64,6 +64,9 @@ def lambda_handler(event, context):
     else:
         presignedUrlResponse = getPresignedPostUrl()
 
+    if(event.get('info') != None):
+        presignedUrlResponse['info'] = event.get('info')
+
     LOGGER.info(presignedUrlResponse)
     IOT_DATA_CLIENT.publish(topic=URL_RESPONSE_TOPIC, qos=0, payload=json.dumps(presignedUrlResponse))
 
