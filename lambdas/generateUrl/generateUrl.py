@@ -53,13 +53,14 @@ def generateConditions(expectedKey):
     return [prefix, serverSideEncryption]
 
 
-def generatePresignedPostUrl(objectKey, bucketName=BUCKET_NAME, expiration=URL_TIMEOUT):
+def generatePresignedPostUrl(objectKey, bucketName, expiration):
     # Generate a presigned S3 POST URL
     conditions = generateConditions(objectKey)
+    fields = generateFields()
     try:
         response = S3_CLIENT.generate_presigned_post(bucketName,
                                                      objectKey,
-                                                     Fields=generateFields(),
+                                                     Fields=fields,
                                                      Conditions=conditions,
                                                      ExpiresIn=expiration)
     except ClientError as e:
@@ -70,9 +71,9 @@ def generatePresignedPostUrl(objectKey, bucketName=BUCKET_NAME, expiration=URL_T
     return response
 
 
-def getPresignedPostUrl(fileName=generateRandomFileName(), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT):
+def getPresignedPostUrl(bucketName, expiration, fileName=generateRandomFileName()):
     s3Key = generateS3Prefix(fileName)
-    urlResponse = generatePresignedPostUrl(s3Key, bucketName=bucketName, expiration=expiration)
+    urlResponse = generatePresignedPostUrl(s3Key, bucketName, expiration)
     return urlResponse
 
 # #you can use the same URL twice to load two different files (but they get saved to the same key)
@@ -80,6 +81,23 @@ def postToPresignedUrl(urlResponse, pathToFile):
     http_response = requests.post(urlResponse['url'], data=urlResponse['fields'], files={'file': open(pathToFile, 'rb')})
     return http_response
 
+def getPresignedDeleteUrl(objectKey, bucketName, expiration):
+    # Generate a presigned S3 DELETE URL
+    try:
+        response = S3_CLIENT.generate_presigned_url(ClientMethod='delete_object',
+                                                    Params={'Bucket': bucketName, 'Key':objectKey},
+                                                    ExpiresIn=expiration,
+                                                    HttpMethod='DELETE')
+    except ClientError as e:
+        LOGGER.error(e)
+        return None
+
+    # The response contains the presigned URL and required fields
+    return response
+
+def deleteToPresignedUrl(url):
+    http_response = requests.delete(url)
+    return http_response
 
 def lambda_handler(event, context):
     setUpConstants()
@@ -88,9 +106,9 @@ def lambda_handler(event, context):
     
     presignedUrlResponse = None
     if(event.get('fileName') != None):
-        presignedUrlResponse = getPresignedPostUrl(fileName=event.get('fileName'))
+        presignedUrlResponse = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT, fileName=event.get('fileName'))
     else:
-        presignedUrlResponse = getPresignedPostUrl()
+        presignedUrlResponse = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
 
     if(event.get('info') != None):
         presignedUrlResponse['info'] = event.get('info')
@@ -100,22 +118,13 @@ def lambda_handler(event, context):
 
     return {'status':200, 'event':event, 'presigned' : presignedUrlResponse}
 
-
-        #   URL_TIMEOUT: '{{resolve:ssm:PICAM_PRESIGNED_URL_TIMEOUT:2}}'
-        #   BUCKET_NAME: !Ref PicamBucket
-        #   INPUT_PREFIX: !Ref RawJpgsObjectKey
-        #   URL_RESPONSE_TOPIC: !Ref PresignedUrlTopic
-        #   LOG_LEVEL: !Ref LambdaLogLevel
-
-
-
 if __name__ == "__main__":
     setUpConstants(retrieveFromEnvironment=False)
     initializeResources()
     LOGGER.setLevel(LOG_LEVEL)
 
-    presigned = getPresignedPostUrl(fileName='kermit.jpg')
-    print(presigned)
+    presigned = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT, fileName='kermit-2.jpg')
+    print("PRESIGNED POST", presigned)
 
     numFrames = 21
     frames = []
@@ -125,3 +134,8 @@ if __name__ == "__main__":
     for p in frames:
         response = postToPresignedUrl(presigned, p)
         print(p, response.status_code)
+
+    presigned = getPresignedDeleteUrl('jpgs/kermit-2.jpg', bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+    print("PRESIGNED DELETE", presigned)
+    deleteResponse = deleteToPresignedUrl(presigned)
+    print(deleteResponse)
