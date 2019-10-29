@@ -99,12 +99,22 @@ def lambda_handler(event, context):
     LOGGER.setLevel(LOG_LEVEL)
     LOGGER.info(event)
     
-    presignedUrlResponse = None
-    if(event.get('fileName') != None):
-        presignedUrlResponse = generatePresignedPostUrl(generateS3Prefix(event.get('fileName')), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
-    else:
-        presignedUrlResponse = generatePresignedPostUrl(generateS3Prefix(generateRandomFileName()), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+    presignedUrlResponse = {}
 
+    #generate a url for posting 
+    if(event.get('fileName') != None):
+        presignedUrlResponse['post'] = generatePresignedPostUrl(generateS3Prefix(event.get('fileName')), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+    else:
+        presignedUrlResponse['post'] = generatePresignedPostUrl(generateS3Prefix(generateRandomFileName()), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+
+    #generate a url for deleting
+    if(event.get('fileName') != None):
+        presignedUrlResponse['delete'] = generatePresignedDeleteUrl(generateS3Prefix(event.get('fileName')), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+    else:
+        presignedUrlResponse['delete'] = generatePresignedDeleteUrl(generateS3Prefix(generateRandomFileName()), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+
+
+    #send additional info from request back to requestor
     if(event.get('info') != None):
         presignedUrlResponse['info'] = event.get('info')
 
