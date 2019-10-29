@@ -68,6 +68,10 @@ Resources:
             Effect: Allow
             Resource: 
               - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
+          - Action: 's3:DeleteObject'
+            Effect: Allow
+            Resource: 
+              - !Sub 'arn:aws:s3:::${PicamBucketName}/${RawJpgsObjectKey}/*'   #use sub and not ref to avoid circular dependency 
       Roles: 
         - !Ref GenerateUrlLambdaExecutionRole
   ReadGifsFolderPolicy:
