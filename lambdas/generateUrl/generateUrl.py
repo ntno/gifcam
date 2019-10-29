@@ -94,6 +94,8 @@ def deleteToPresignedUrl(url):
 
 def lambda_handler(event, context):
     setUpConstants()
+    initializeResources()
+
     LOGGER.setLevel(LOG_LEVEL)
     LOGGER.info(event)
     
