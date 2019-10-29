@@ -245,7 +245,7 @@ Resources:
             Function: !GetAtt
               - TwitterLambda
               - Arn
-          - Event: 's3:ObjectCreated:*'
+          - Event: 's3:ObjectRemoved:DeleteMarkerCreated'
             Filter:
               S3Key:
                 Rules:
@@ -254,7 +254,7 @@ Resources:
                     Value: !Sub '${RawJpgsObjectKey}'
                   - 
                     Name: suffix
-                    Value: '.txt'
+                    Value: '.jpg'
             Function: !GetAtt
               - CreateGifLambda
               - Arn
