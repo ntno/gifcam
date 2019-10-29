@@ -21,10 +21,9 @@ def uploadFramesToS3(presignedUrlResponse):
     lsResult = subprocess.check_output(cleanedFileListing, shell=True)
     lsResult = str(lsResult, "utf-8").rstrip().split('\n')
     
-    numFrames = len(lsResult) + 1
     frames = []
-    for i in range(0, numFrames):
-        pathToFrame = os.path.join(pathToFrames, lsResult[i])
+    for frameName in lsResult:
+        pathToFrame = os.path.join(pathToFrames, frameName)
         frames.append(Path(pathToFrame))
 
     responseCodes = []
