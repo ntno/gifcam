@@ -16,8 +16,9 @@ UPLOAD = True       # uploads the GIF to S3 after capturing
 
 def uploadFramesToS3(presignedUrlResponse):
     pathToFrames = presignedUrlResponse['info']['frames']
-    lsCommand = "ls -tr {} | awk '{print $0}'".format(pathToFrames)
-    lsResult = subprocess.check_output(lsCommand, shell=True)
+    lsCommand = "ls -tr {}".format(pathToFrames) 
+    cleanedFileListing = lsCommand + "| awk '{print $0}'"
+    lsResult = subprocess.check_output(cleanedFileListing, shell=True)
     lsResult = str(lsResult, "utf-8").rstrip().split('\n')
     
     numFrames = len(lsResult) + 1
