@@ -100,8 +100,7 @@ if __name__ == "__main__":
                     requestPresignedUrl(awsClient, uploadFileName, info)
 
                 turnOffStatusLight()
-                print('Done')
-                print('System Ready')
+                print('System Ready For Capture')
 
             else : # Button NOT pressed
                 ### READY TO MAKE GIF ###
