@@ -1,10 +1,10 @@
-import os, random, string, json
+import os, random, string, json, subprocess
 from time import sleep
 from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
 from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC, IOT_SUBSCRIBE_TOPIC
-from lambdas.generateUrl.generateUrl import postToPresignedUrl
+from lambdas.generateUrl.generateUrl import postToPresignedUrl, deleteToPresignedUrl
 
 ########################
 #
@@ -16,21 +16,30 @@ UPLOAD = True       # uploads the GIF to S3 after capturing
 
 def uploadFramesToS3(presignedUrlResponse):
     pathToFrames = presignedUrlResponse['info']['frames']
-    lsCommand = "ls -tr {} | awk '{print $0}'".format(pathToFrames)
-    lsResult = subprocess.check_output(lsCommand, shell=True)
+    lsCommand = "ls -tr {}".format(pathToFrames) 
+    cleanedFileListing = lsCommand + "| awk '{print $0}'"
+    lsResult = subprocess.check_output(cleanedFileListing, shell=True)
     lsResult = str(lsResult, "utf-8").rstrip().split('\n')
-    
-    numFrames = len(lsResult) + 1
+
     frames = []
-    for i in range(0, numFrames):
-        pathToFrame = os.path.join(pathToFrames, lsResult[i])
+    for frameName in lsResult:
+        pathToFrame = os.path.join(pathToFrames, frameName)
         frames.append(Path(pathToFrame))
 
+    responseCodes = []
     for p in frames:
-        response = postToPresignedUrl(presignedUrlResponse, p)
-        print(p, response.status_code)
+        response = postToPresignedUrl(presignedUrlResponse['post'], p)
+        responseCodes.append(response.status_code)
+    
+    return responseCodes
+
+def markFrameUploadComplete(presignedUrlResponse):
+    print("markFrameUploadComplete() presignedUrlResponse", presignedUrlResponse)
+    print("[delete]", presignedUrlResponse['delete'])
+    deleteToPresignedUrl(presignedUrlResponse['delete'])
 
 def requestPresignedUrl(client, fileName, info=None):
+    flashButtonLight()
     message = {}
     message['fileName'] = fileName
     message['info'] = info
@@ -40,28 +49,24 @@ def requestPresignedUrl(client, fileName, info=None):
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
-def presignedUrlResponseCallBack(client, userdata, message):
-    print("\n\n--------------")
-    print("Received a new message: ")
-    print("ts:")
-    print(message.timestamp)
-    print("payload:")
-    print(message.payload)
-    print("topic:")
-    print(message.topic)
+def postFramesToS3CallBack(client, userdata, message):
     bytesPayload = message.payload
     payloadAsStr = str(bytesPayload, "utf-8")
     payload = json.loads(payloadAsStr)
-    uploadFramesToS3(payload)
-    print("--------------\n\n")
-
+    responseCodes = uploadFramesToS3(payload)
+    print(responseCodes)
+    invalidResponses = [item for item in responseCodes if item != 204]
+    print(invalidResponses)
+    if(len(invalidResponses) == 0):
+        markFrameUploadComplete(payload) 
+    turnOffButtonLight()
 
 if __name__ == "__main__":
     if(UPLOAD):
         print("Intializing AWS MQTT Client")
         awsClient = createAwsIotMqttClient()
         initializeClient(awsClient)
-        addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsClient)
+        addSubscription(IOT_SUBSCRIBE_TOPIC, postFramesToS3CallBack, awsClient)
         print("Done initializing AWS MQTT Client")
 
 
@@ -97,15 +102,7 @@ if __name__ == "__main__":
                     requestPresignedUrl(awsClient, uploadFileName, info)
 
                 turnOffStatusLight()
-
-                ### UPLOAD TO AWS ###
-                if(UPLOAD):
-                    flashButtonLight()
-                    uploadToS3()
-                    turnOffButtonLight()
-
-                print('Done')
-                print('System Ready')
+                print('System Ready For Capture')
 
             else : # Button NOT pressed
                 ### READY TO MAKE GIF ###

@@ -90,6 +90,8 @@ def generatePresignedDeleteUrl(objectKey, bucketName, expiration):
 
 def deleteToPresignedUrl(url):
     http_response = requests.delete(url)
+    print("delete response", http_response)
+    LOGGER.error(http_response)
     return http_response
 
 def lambda_handler(event, context):
