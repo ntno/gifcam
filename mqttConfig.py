@@ -53,10 +53,8 @@ def printMessageCallback(client, userdata, message):
     print("payload:")
     print(message.payload)
     payloadAsJson = json.loads(message.payload.decode('utf-8'))
-    
     print("post with ", payloadAsJson['post']['fields'])
     print("delete to ", payloadAsJson['delete'])
-
     print("topic:")
     print(message.topic)
     print("--------------\n\n")
