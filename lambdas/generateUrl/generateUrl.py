@@ -52,7 +52,6 @@ def generateConditions(expectedKey):
     prefix = ["starts-with", "$key", expectedKey]
     return [prefix, serverSideEncryption]
 
-
 def generatePresignedPostUrl(objectKey, bucketName, expiration):
     # Generate a presigned S3 POST URL
     conditions = generateConditions(objectKey)
@@ -70,18 +69,12 @@ def generatePresignedPostUrl(objectKey, bucketName, expiration):
     # The response contains the presigned URL and required fields
     return response
 
-
-def getPresignedPostUrl(bucketName, expiration, fileName=generateRandomFileName()):
-    s3Key = generateS3Prefix(fileName)
-    urlResponse = generatePresignedPostUrl(s3Key, bucketName, expiration)
-    return urlResponse
-
 # #you can use the same URL twice to load two different files (but they get saved to the same key)
 def postToPresignedUrl(urlResponse, pathToFile):
     http_response = requests.post(urlResponse['url'], data=urlResponse['fields'], files={'file': open(pathToFile, 'rb')})
     return http_response
 
-def getPresignedDeleteUrl(objectKey, bucketName, expiration):
+def generatePresignedDeleteUrl(objectKey, bucketName, expiration):
     # Generate a presigned S3 DELETE URL
     try:
         response = S3_CLIENT.generate_presigned_url(ClientMethod='delete_object',
@@ -106,9 +99,9 @@ def lambda_handler(event, context):
     
     presignedUrlResponse = None
     if(event.get('fileName') != None):
-        presignedUrlResponse = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT, fileName=event.get('fileName'))
+        presignedUrlResponse = generatePresignedPostUrl(generateS3Prefix(event.get('fileName')), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
     else:
-        presignedUrlResponse = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+        presignedUrlResponse = generatePresignedPostUrl(generateS3Prefix(generateRandomFileName()), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
 
     if(event.get('info') != None):
         presignedUrlResponse['info'] = event.get('info')
@@ -123,7 +116,8 @@ if __name__ == "__main__":
     initializeResources()
     LOGGER.setLevel(LOG_LEVEL)
 
-    presigned = getPresignedPostUrl(bucketName=BUCKET_NAME, expiration=URL_TIMEOUT, fileName='kermit-2.jpg')
+    fileName='kermit-4.jpg'
+    presigned = generatePresignedPostUrl(generateS3Prefix(fileName), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
     print("PRESIGNED POST", presigned)
 
     numFrames = 21
@@ -135,7 +129,7 @@ if __name__ == "__main__":
         response = postToPresignedUrl(presigned, p)
         print(p, response.status_code)
 
-    presigned = getPresignedDeleteUrl('jpgs/kermit-2.jpg', bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
+    presigned = generatePresignedDeleteUrl(generateS3Prefix(fileName), bucketName=BUCKET_NAME, expiration=URL_TIMEOUT)
     print("PRESIGNED DELETE", presigned)
     deleteResponse = deleteToPresignedUrl(presigned)
     print(deleteResponse)
