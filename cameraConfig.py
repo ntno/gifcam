@@ -15,25 +15,32 @@ camera.rotation = 90
 camera.image_effect = 'none'
 
 def captureFrames(numFrames=num_frame):
-    print("Capturing {} Frames".format(numFrames))
-    for i in range(numFrames):
-        camera.capture('{0:04d}.jpg'.format(i))
+	print("Capturing {} Frames".format(numFrames))
+	for i in range(numFrames):
+		camera.capture('{0:04d}.jpg'.format(i))
 
 def copyFramesForRebound(numFrames=num_frame):
-    print("Copying captures for rebound")
-    for i in range(numFrames - 1):
-        source = '{}.jpg'.format(str(numFrames - i - 1))
-        source = source.zfill(8) # pad with zeros
+	print("Copying captures for rebound")
+	for i in range(numFrames - 1):
+		source = '{}.jpg'.format(str(numFrames - i - 1))
+		source = source.zfill(8) # pad with zeros
 
-        dest = '{}.jpg'.format(str(numFrames + i))
-        dest = dest.zfill(8) # pad with zeros
+		dest = '{}.jpg'.format(str(numFrames + i))
+		dest = dest.zfill(8) # pad with zeros
 
-        copyCommand = 'cp {} {}'.format(source, dest)
-        os.system(copyCommand)
+		copyCommand = 'cp {} {}'.format(source, dest)
+		print("\t" + copyCommand)
+		os.system(copyCommand)
+
+def moveFramesToFolder(path):
+	print("Moving frames to {}".format(path))
+	os.system("mkdir -p {}".format(path))
+	moveCommand = 'mv *.jpg {}'.format(path)
+	os.system(moveCommand)     
 
 def createGif(filename, delay=gif_delay, removeFrames=True):
-    print('Creating Gif, delay={}'.format(delay))
-    graphicsmagickCommand =  'gm convert -delay {} *.jpg {}.gif'.format(str(delay), filename)
-    os.system(graphicsmagickCommand)
-    if(removeFrames):
-        os.system("rm ./*.jpg") # cleanup source images
+	print('Creating Gif, delay={}'.format(delay))
+	graphicsmagickCommand =  'gm convert -delay {} *.jpg {}.gif'.format(str(delay), filename)
+	os.system(graphicsmagickCommand)
+	if(removeFrames):
+		os.system("rm ./*.jpg") # cleanup source images
