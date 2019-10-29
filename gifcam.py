@@ -20,7 +20,7 @@ def uploadFramesToS3(presignedUrlResponse):
     cleanedFileListing = lsCommand + "| awk '{print $0}'"
     lsResult = subprocess.check_output(cleanedFileListing, shell=True)
     lsResult = str(lsResult, "utf-8").rstrip().split('\n')
-    
+
     frames = []
     for frameName in lsResult:
         pathToFrame = os.path.join(pathToFrames, frameName)
@@ -52,7 +52,9 @@ def postFramesToS3CallBack(client, userdata, message):
     payloadAsStr = str(bytesPayload, "utf-8")
     payload = json.loads(payloadAsStr)
     responseCodes = uploadFramesToS3(payload)
+    print(responseCodes)
     invalidResponses = [item for item in responseCodes if item != 204]
+    print(invalidResponses)
     if(len(invalidResponses) == 0):
         markFrameUploadComplete(payload) 
     turnOffButtonLight()
