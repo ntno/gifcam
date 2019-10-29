@@ -34,6 +34,8 @@ def uploadFramesToS3(presignedUrlResponse):
     return responseCodes
 
 def markFrameUploadComplete(presignedUrlResponse):
+    print("markFrameUploadComplete() presignedUrlResponse", presignedUrlResponse)
+    print("[delete]", presignedUrlResponse['delete'])
     deleteToPresignedUrl(presignedUrlResponse['delete'])
 
 def requestPresignedUrl(client, fileName, info=None):
