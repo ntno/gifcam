@@ -1,10 +1,10 @@
-import os, random, string, json
+import os, random, string, json, subprocess
 from time import sleep
 from pathlib import Path
 from pinConfig import isButtonPressed, turnOffButtonLight, turnOnButtonLight, turnOffStatusLight, turnOnStatusLight, flashButtonLight, flashStatusLight, cleanup
 from cameraConfig import createGif, captureFrames, copyFramesForRebound, moveFramesToFolder
 from mqttConfig import createAwsIotMqttClient, initializeClient, addSubscription, printMessageCallback, IOT_PUBLISH_TOPIC, IOT_SUBSCRIBE_TOPIC
-from lambdas.generateUrl.generateUrl import postToPresignedUrl
+from lambdas.generateUrl.generateUrl import postToPresignedUrl, deleteToPresignedUrl
 
 ########################
 #
@@ -26,11 +26,18 @@ def uploadFramesToS3(presignedUrlResponse):
         pathToFrame = os.path.join(pathToFrames, lsResult[i])
         frames.append(Path(pathToFrame))
 
+    responseCodes = []
     for p in frames:
-        response = postToPresignedUrl(presignedUrlResponse, p)
-        print(p, response.status_code)
+        response = postToPresignedUrl(presignedUrlResponse['post'], p)
+        responseCodes.append(response.status_code)
+    
+    return responseCodes
+
+def markFrameUploadComplete(presignedUrlResponse):
+    deleteToPresignedUrl(presignedUrlResponse['delete'])
 
 def requestPresignedUrl(client, fileName, info=None):
+    flashButtonLight()
     message = {}
     message['fileName'] = fileName
     message['info'] = info
@@ -40,28 +47,22 @@ def requestPresignedUrl(client, fileName, info=None):
 def random_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
-def presignedUrlResponseCallBack(client, userdata, message):
-    print("\n\n--------------")
-    print("Received a new message: ")
-    print("ts:")
-    print(message.timestamp)
-    print("payload:")
-    print(message.payload)
-    print("topic:")
-    print(message.topic)
+def postFramesToS3CallBack(client, userdata, message):
     bytesPayload = message.payload
     payloadAsStr = str(bytesPayload, "utf-8")
     payload = json.loads(payloadAsStr)
-    uploadFramesToS3(payload)
-    print("--------------\n\n")
-
+    responseCodes = uploadFramesToS3(payload)
+    invalidResponses = [item for item in responseCodes if item != 204]
+    if(len(invalidResponses) == 0):
+        markFrameUploadComplete(payload) 
+    turnOffButtonLight()
 
 if __name__ == "__main__":
     if(UPLOAD):
         print("Intializing AWS MQTT Client")
         awsClient = createAwsIotMqttClient()
         initializeClient(awsClient)
-        addSubscription(IOT_SUBSCRIBE_TOPIC, printMessageCallback, awsClient)
+        addSubscription(IOT_SUBSCRIBE_TOPIC, postFramesToS3CallBack, awsClient)
         print("Done initializing AWS MQTT Client")
 
 
@@ -97,13 +98,6 @@ if __name__ == "__main__":
                     requestPresignedUrl(awsClient, uploadFileName, info)
 
                 turnOffStatusLight()
-
-                ### UPLOAD TO AWS ###
-                if(UPLOAD):
-                    flashButtonLight()
-                    uploadToS3()
-                    turnOffButtonLight()
-
                 print('Done')
                 print('System Ready')
 
