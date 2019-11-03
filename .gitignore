@@ -4,7 +4,6 @@
 __pycache__
 ignore
 **/package
-**/gm-layer
 **/update-iot*.sh
 **/update-stack.sh
 **/create-stack.sh
