@@ -1,7 +1,8 @@
 #!/bin/sh
 
 #build jq layer 
-docker build -t jq-layer jq-layer
+export JQ_VERSION=jq-1.5
+docker build --build-arg JQ_VERSION -t jq-layer jq-layer
 docker run --rm jq-layer cat /tmp/jq.zip > ./jq-layer.zip
 
 #build graphicsmagick layer

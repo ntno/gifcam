@@ -2,9 +2,10 @@
 
 REGION='us-east-2'
 GM_VERSION=$GM_VERSION
+JQ_VERSION=$JQ_VERSION
 
 #publish jq layer
-LAYER_DESCRIPTION='jq binaries'
+LAYER_DESCRIPTION="$JQ_VERSION binaries"
 LAYER_ZIP='jq-layer.zip'
 LAYER_NAME='jq'
 export JQ_LAYER_ARN=$(aws lambda publish-layer-version --region $REGION --layer-name $LAYER_NAME --zip-file fileb://$LAYER_ZIP \
